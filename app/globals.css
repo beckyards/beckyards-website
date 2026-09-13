@@ -236,6 +236,13 @@ header.is-solid{
 .nav-dropdown-menu-compact{ min-width: 180px; }
 .nav-dropdown-menu-compact a{ padding: 8px 14px; }
 
+/* Contact is the last nav item, right next to the Free Quote button --
+   a centered dropdown would open on top of that button. Anchor it to the
+   trigger's right edge instead, so it opens leftward, clear of the button. */
+.nav-dropdown-right .nav-dropdown-menu{ left: auto; right: 0; transform: translate(0, 8px); }
+.nav-dropdown-right:hover .nav-dropdown-menu,
+.nav-dropdown-right:focus-within .nav-dropdown-menu{ transform: translate(0, 0); }
+
 /* ---------- Hero ---------- */
 
 .hero{

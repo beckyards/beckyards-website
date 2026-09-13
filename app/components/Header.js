@@ -55,7 +55,7 @@ export default function Header() {
               ))}
             </div>
           </div>
-          <div className="nav-dropdown">
+          <div className="nav-dropdown nav-dropdown-right">
             <a href="/contact" className="nav-dropdown-trigger">Contact</a>
             <div className="nav-dropdown-menu nav-dropdown-menu-compact">
               <a href="/contact"><b>Get a Quote</b></a>
