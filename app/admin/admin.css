@@ -569,17 +569,84 @@
 .route-check-height { color: var(--a-dim); font-size: 13.5px; width: 48px; text-align: right; }
 .route-check-price { color: var(--a-dim); font-size: 13.5px; width: 64px; text-align: right; font-weight: 600; }
 
+/* ---------- Mobile nav (hamburger + slide-out drawer) ---------- */
+.admin-mobile-bar { display: none; }
+.admin-nav-backdrop { display: none; }
+.admin-nav-close { display: none; }
+
 @media (max-width: 900px) {
-  .admin-shell { grid-template-columns: 1fr; }
-  .admin-nav { position: static; height: auto; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 12px; }
-  .admin-nav nav { flex-direction: row; flex-wrap: wrap; }
-  .admin-nav nav a.is-active::before { display: none; }
-  .admin-nav-foot { margin: 0 0 0 auto; flex-direction: row; align-items: center; }
-  .admin-main { padding: 22px; }
+  /* Explicit row sizing: without it, the grid's two remaining in-flow
+     children (the mobile bar and <main> -- nav and its backdrop are
+     position:fixed, out of flow) stretch to fill the full min-height:100vh
+     container, inflating the bar's height well past its content. */
+  .admin-shell { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+
+  .admin-mobile-bar {
+    display: flex; align-items: center; gap: 12px;
+    position: sticky; top: 0; z-index: 40;
+    background: linear-gradient(180deg, #211c15, #17130d); color: #fff;
+    padding: 13px 16px;
+  }
+  .admin-hamburger {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px; flex: none; border-radius: 9px;
+    border: 1px solid rgba(255,255,255,.16); background: rgba(255,255,255,.04); color: #fff; cursor: pointer;
+  }
+  .admin-hamburger:hover { background: rgba(255,255,255,.1); }
+  .admin-hamburger svg { width: 19px; height: 19px; }
+  .admin-mobile-brand { font-family: Archivo, sans-serif; font-weight: 800; font-size: 16px; }
+
+  .admin-nav-backdrop {
+    display: block; position: fixed; inset: 0; z-index: 50; background: rgba(20,17,11,.5);
+    opacity: 0; pointer-events: none; transition: opacity .2s ease;
+  }
+  .admin-nav-backdrop.is-open { opacity: 1; pointer-events: auto; }
+
+  .admin-nav {
+    position: fixed; top: 0; left: 0; z-index: 60; height: 100dvh; width: 264px; max-width: 82vw;
+    transform: translateX(-100%); transition: transform .25s ease; box-shadow: 10px 0 30px rgba(0,0,0,.3);
+  }
+  .admin-nav.is-open { transform: translateX(0); }
+  .admin-brand { flex-direction: row; align-items: center; justify-content: space-between; }
+  .admin-nav-close {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px; border-radius: 8px; border: none; background: transparent; color: #d8cfc0; cursor: pointer;
+  }
+  .admin-nav-close:hover { background: rgba(255,255,255,.08); color: #fff; }
+  .admin-nav-close svg { width: 18px; height: 18px; }
+  .admin-nav-foot { flex-direction: column; align-items: stretch; }
+
+  .admin-main { padding: 20px 16px 48px; }
   .stat-row { grid-template-columns: repeat(2, 1fr); }
   .admin-cards { grid-template-columns: 1fr; }
   .panel-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 480px) {
   .stat-row { grid-template-columns: 1fr; }
+}
+
+/* ---------- Mobile tables (stacked cards instead of horizontal scroll) ---------- */
+@media (max-width: 700px) {
+  .admin-table-wrap { overflow-x: visible; border: none; box-shadow: none; background: none; }
+  .admin-table { display: block; }
+  .admin-table thead { display: none; }
+  .admin-table tbody { display: block; }
+  .admin-table tr {
+    display: block; position: relative; background: var(--a-panel); border: 1px solid var(--a-line);
+    border-radius: 12px; box-shadow: var(--a-shadow); margin-bottom: 10px; padding: 14px;
+  }
+  .admin-table td {
+    display: flex; align-items: center; justify-content: flex-end; gap: 10px; text-align: right;
+    padding: 7px 0; border-bottom: 1px solid var(--a-line-soft); white-space: normal;
+  }
+  .admin-table td:last-child { border-bottom: none; }
+  .admin-table td[data-label]::before {
+    content: attr(data-label); margin-right: auto; text-align: left;
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--a-faint);
+  }
+  .admin-table td:has(.admin-drag-handle) {
+    position: absolute; top: 12px; right: 12px; padding: 0; border-bottom: none; width: auto;
+  }
+  .admin-table td input, .admin-table td select, .admin-table td .admin-price-field { max-width: 60%; }
+  .admin-table tfoot tr { background: var(--a-panel-2); box-shadow: none; }
 }

@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/browser';
 
@@ -64,6 +65,11 @@ const LINKS = [
 export default function AdminNav({ email }) {
   const pathname = usePathname();
   const router = useRouter();
+  const [open, setOpen] = useState(false);
+
+  // Close the drawer automatically whenever the page changes (i.e. after
+  // tapping a nav link), so it doesn't stay open over the new page.
+  useEffect(() => { setOpen(false); }, [pathname]);
 
   async function logOut() {
     const supabase = createClient();
@@ -73,30 +79,58 @@ export default function AdminNav({ email }) {
   }
 
   return (
-    <aside className="admin-nav">
-      <div className="admin-brand">
-        <a href="/" target="_blank" rel="noreferrer">BeckYards</a>
-        <span>Control panel</span>
+    <>
+      <div className="admin-mobile-bar">
+        <button
+          type="button"
+          className="admin-hamburger"
+          aria-label="Open menu"
+          aria-expanded={open}
+          onClick={() => setOpen(true)}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
+        <span className="admin-mobile-brand">BeckYards</span>
       </div>
-      <nav>
-        {LINKS.map((link) => {
-          const active =
-            link.href === '/admin'
-              ? pathname === '/admin'
-              : pathname.startsWith(link.href);
-          return (
-            <a key={link.href} href={link.href} className={active ? 'is-active' : undefined}>
-              {link.icon}
-              {link.label}
-            </a>
-          );
-        })}
-      </nav>
-      <div className="admin-nav-foot">
-        <span className="admin-whoami">Signed in as</span>
-        <span className="admin-email" title={email}>{email}</span>
-        <button type="button" onClick={logOut}>Log out</button>
-      </div>
-    </aside>
+
+      <div
+        className={`admin-nav-backdrop${open ? ' is-open' : ''}`}
+        onClick={() => setOpen(false)}
+        aria-hidden="true"
+      />
+
+      <aside className={`admin-nav${open ? ' is-open' : ''}`}>
+        <div className="admin-brand">
+          <a href="/" target="_blank" rel="noreferrer">BeckYards</a>
+          <span>Control panel</span>
+          <button type="button" className="admin-nav-close" aria-label="Close menu" onClick={() => setOpen(false)}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+        <nav>
+          {LINKS.map((link) => {
+            const active =
+              link.href === '/admin'
+                ? pathname === '/admin'
+                : pathname.startsWith(link.href);
+            return (
+              <a key={link.href} href={link.href} className={active ? 'is-active' : undefined}>
+                {link.icon}
+                {link.label}
+              </a>
+            );
+          })}
+        </nav>
+        <div className="admin-nav-foot">
+          <span className="admin-whoami">Signed in as</span>
+          <span className="admin-email" title={email}>{email}</span>
+          <button type="button" onClick={logOut}>Log out</button>
+        </div>
+      </aside>
+    </>
   );
 }

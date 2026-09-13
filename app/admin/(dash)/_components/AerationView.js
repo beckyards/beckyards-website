@@ -255,7 +255,7 @@ export default function AerationView() {
                   <td>
                     <span className="admin-drag-handle" title="Drag to reorder" aria-hidden="true">⠿</span>
                   </td>
-                  <td>
+                  <td data-label="Done">
                     <input
                       type="checkbox"
                       checked={!!item.completed}
@@ -264,7 +264,7 @@ export default function AerationView() {
                       aria-label={`Mark ${item.name} as ${item.completed ? 'not done' : 'done'}`}
                     />
                   </td>
-                  <td>
+                  <td data-label="Name">
                     <EditableCell
                       value={item.name}
                       placeholder="Name"
@@ -272,7 +272,7 @@ export default function AerationView() {
                       onSave={(v) => saveField(item, 'name', v)}
                     />
                   </td>
-                  <td>
+                  <td data-label="Phone">
                     <EditableCell
                       value={item.phone}
                       placeholder="Phone"
@@ -282,7 +282,7 @@ export default function AerationView() {
                       onSave={(v) => saveField(item, 'phone', v)}
                     />
                   </td>
-                  <td>
+                  <td data-label="Email">
                     <EditableCell
                       value={item.email}
                       placeholder="+ Add email"
@@ -291,7 +291,7 @@ export default function AerationView() {
                       onSave={(v) => saveField(item, 'email', v)}
                     />
                   </td>
-                  <td>
+                  <td data-label="Address">
                     <EditableCell
                       value={item.address}
                       placeholder="Address"
@@ -299,9 +299,9 @@ export default function AerationView() {
                       onSave={(v) => saveField(item, 'address', v)}
                     />
                   </td>
-                  <td>{SERVICE_LABELS[item.service_type] || item.service_type}</td>
-                  <td>{fullDate(item.created_at)}</td>
-                  <td>
+                  <td data-label="Service">{SERVICE_LABELS[item.service_type] || item.service_type}</td>
+                  <td data-label="Signed up">{fullDate(item.created_at)}</td>
+                  <td data-label="Price">
                     <div className="admin-price-field">
                       <span>$</span>
                       <input

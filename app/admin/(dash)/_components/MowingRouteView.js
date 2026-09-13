@@ -92,7 +92,7 @@ function AddClientRow({ onAdd, showFrequency, dropProps }) {
   return (
     <tr className={`admin-add-row ${dropProps?.className || ''}`} onDragOver={dropProps?.onDragOver} onDrop={dropProps?.onDrop}>
       <td></td>
-      <td>
+      <td data-label="Name">
         <input
           className="admin-plain-input"
           placeholder="+ Name"
@@ -101,7 +101,7 @@ function AddClientRow({ onAdd, showFrequency, dropProps }) {
           onChange={(e) => set('name', e.target.value)}
         />
       </td>
-      <td>
+      <td data-label="Address">
         <input
           className="admin-plain-input"
           placeholder="Address"
@@ -110,7 +110,7 @@ function AddClientRow({ onAdd, showFrequency, dropProps }) {
           onChange={(e) => set('address', e.target.value)}
         />
       </td>
-      <td>
+      <td data-label="Phone">
         <input
           className="admin-plain-input"
           type="tel"
@@ -121,7 +121,7 @@ function AddClientRow({ onAdd, showFrequency, dropProps }) {
         />
       </td>
       {showFrequency && (
-        <td>
+        <td data-label="Frequency">
           <input
             className="admin-plain-input"
             placeholder="e.g. Once a month"
@@ -131,7 +131,7 @@ function AddClientRow({ onAdd, showFrequency, dropProps }) {
           />
         </td>
       )}
-      <td>
+      <td data-label="Mow height">
         <select
           className="admin-height-select"
           value={form.mowing_height}
@@ -143,7 +143,7 @@ function AddClientRow({ onAdd, showFrequency, dropProps }) {
           ))}
         </select>
       </td>
-      <td>
+      <td data-label="Payment">
         <select
           className="admin-height-select"
           value={form.payment_type}
@@ -156,7 +156,7 @@ function AddClientRow({ onAdd, showFrequency, dropProps }) {
           ))}
         </select>
       </td>
-      <td>
+      <td data-label="Price">
         <div className="admin-price-field">
           <span>$</span>
           <input
@@ -240,7 +240,7 @@ function RouteGroup({
                 <td>
                   <span className="admin-drag-handle" title="Drag to reorder or move" aria-hidden="true">⠿</span>
                 </td>
-                <td>
+                <td data-label="Name">
                   <EditableCell
                     value={item.name}
                     placeholder="Name"
@@ -248,7 +248,7 @@ function RouteGroup({
                     onSave={(v) => onSaveField(item, 'name', v)}
                   />
                 </td>
-                <td>
+                <td data-label="Address">
                   <EditableCell
                     value={item.address}
                     placeholder="+ Add address"
@@ -256,7 +256,7 @@ function RouteGroup({
                     onSave={(v) => onSaveField(item, 'address', v)}
                   />
                 </td>
-                <td>
+                <td data-label="Phone">
                   <EditableCell
                     value={item.phone}
                     placeholder="+ Add phone"
@@ -267,7 +267,7 @@ function RouteGroup({
                   />
                 </td>
                 {showFrequency && (
-                  <td>
+                  <td data-label="Frequency">
                     <EditableCell
                       value={item.frequency}
                       placeholder="+ Add frequency"
@@ -276,7 +276,7 @@ function RouteGroup({
                     />
                   </td>
                 )}
-                <td>
+                <td data-label="Mow height">
                   <select
                     className="admin-height-select"
                     value={item.mowing_height ?? 3}
@@ -288,7 +288,7 @@ function RouteGroup({
                     ))}
                   </select>
                 </td>
-                <td>
+                <td data-label="Payment">
                   <select
                     className="admin-height-select"
                     value={item.payment_type || ''}
@@ -301,7 +301,7 @@ function RouteGroup({
                     ))}
                   </select>
                 </td>
-                <td>
+                <td data-label="Price">
                   <div className="admin-price-field">
                     <span>$</span>
                     <input

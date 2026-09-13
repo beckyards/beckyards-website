@@ -190,11 +190,11 @@ export default function RouteRunView() {
               <tbody>
                 {history.map((r) => (
                   <tr key={r.id}>
-                    <td>{fullDate(r.run_date)}</td>
-                    <td>Route {r.route_group}</td>
-                    <td>{r.checked} of {r.total} done</td>
-                    <td>{money(r.earned)}</td>
-                    <td>{r.helper || '—'}</td>
+                    <td data-label="Date">{fullDate(r.run_date)}</td>
+                    <td data-label="Route">Route {r.route_group}</td>
+                    <td data-label="Progress">{r.checked} of {r.total} done</td>
+                    <td data-label="Earned">{money(r.earned)}</td>
+                    <td data-label="Helper">{r.helper || '—'}</td>
                     <td>
                       <a className="admin-mini" href={`/admin/route-run?runId=${r.id}`}>View →</a>
                     </td>
