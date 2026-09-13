@@ -222,8 +222,8 @@ header.is-solid{
 .nav-dropdown-menu a b{
   font-family:'Archivo', sans-serif;
   font-size: 13px;
-  font-weight: 700;
-  color: var(--ink);
+  font-weight: 500;
+  color: var(--grey);
 }
 .nav-dropdown-menu a span{
   font-size: 12px;
