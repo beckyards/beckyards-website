@@ -207,6 +207,9 @@
 .admin-price-field input:focus { outline: 2px solid var(--a-accent); outline-offset: 1px; border-color: transparent; }
 .admin-reorder { display: flex; gap: 3px; }
 .admin-reorder .admin-mini { padding: 3px 7px; line-height: 1; }
+.admin-table tr.is-dragging { opacity: 0.4; }
+.admin-table tr.is-drag-over td { box-shadow: inset 0 2px 0 var(--a-accent); }
+.admin-add-row.is-drag-over td { box-shadow: inset 0 2px 0 var(--a-accent); }
 .admin-table tr.is-completed { opacity: 0.55; }
 .admin-table tr.is-completed td:not(:first-child):not(:nth-child(2)) { text-decoration: line-through; text-decoration-color: var(--a-faint); }
 .admin-table tfoot td { padding: 12px 14px; border-top: 2px solid var(--a-line); font-weight: 700; }
@@ -236,6 +239,8 @@
 .admin-row-actions { display: flex; gap: 6px; }
 .admin-icon-btn { display: inline-flex; align-items: center; justify-content: center; padding: 5px; }
 .admin-icon-btn svg { width: 14px; height: 14px; }
+.admin-move-btn { min-width: 26px; padding: 4px 6px; font-weight: 700; }
+.admin-route-count { margin: 10px 2px 0; font-size: 12.5px; color: var(--a-dim); }
 
 /* ---------- Messages ---------- */
 .msg-list { display: flex; flex-direction: column; }
@@ -522,6 +527,48 @@
 }
 
 /* ---------- Responsive ---------- */
+/* ---------- Route (field checklist) ---------- */
+.route-picker { display: flex; gap: 14px; margin-top: 8px; flex-wrap: wrap; }
+.route-history-title { margin: 36px 0 4px; font-size: 20px; }
+.route-picker-btn {
+  padding: 22px 36px; border: 1px solid var(--a-line); border-radius: var(--a-radius);
+  background: var(--a-panel); box-shadow: var(--a-shadow); font: inherit; font-family: Archivo, sans-serif;
+  font-size: 20px; font-weight: 500; color: var(--a-dim); cursor: pointer;
+}
+.route-picker-btn:hover { border-color: var(--a-accent); color: var(--a-accent-d); }
+
+.route-top-row {
+  display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
+  margin-bottom: 18px; padding: 14px 16px; border: 1px solid var(--a-line); border-radius: 12px;
+  background: var(--a-panel); box-shadow: var(--a-shadow);
+}
+.route-helper-field { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 200px; }
+.route-helper-field span { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--a-faint); }
+.route-money-row { display: flex; gap: 24px; }
+.route-money-stat { display: flex; flex-direction: column; align-items: flex-end; }
+.route-money-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--a-faint); }
+.route-money-value { font-size: 18px; font-weight: 700; color: var(--a-text); font-family: Archivo, sans-serif; }
+
+.route-complete-wrap { margin-top: 22px; text-align: center; }
+.route-complete-btn {
+  padding: 14px 32px; border: none; border-radius: var(--a-radius); background: var(--a-accent);
+  color: #fff; font: inherit; font-family: Archivo, sans-serif; font-size: 16px; font-weight: 700; cursor: pointer;
+}
+.route-complete-btn:hover { background: var(--a-accent-d); }
+.route-complete-btn:disabled { opacity: 0.6; cursor: default; }
+
+.route-checklist { display: flex; flex-direction: column; gap: 8px; }
+.route-check-row {
+  display: flex; align-items: center; gap: 14px; padding: 14px 16px; border: 1px solid var(--a-line);
+  border-radius: 12px; background: var(--a-panel); box-shadow: var(--a-shadow); cursor: pointer;
+}
+.route-check-row input[type="checkbox"] { width: 22px; height: 22px; flex: none; accent-color: var(--a-accent); }
+.route-check-row.is-checked { background: var(--a-ok-wash); opacity: 0.7; }
+.route-check-row.is-checked .route-check-name { text-decoration: line-through; text-decoration-color: var(--a-faint); }
+.route-check-name { flex: 1; font-size: 16px; font-weight: 600; }
+.route-check-height { color: var(--a-dim); font-size: 13.5px; width: 48px; text-align: right; }
+.route-check-price { color: var(--a-dim); font-size: 13.5px; width: 64px; text-align: right; font-weight: 600; }
+
 @media (max-width: 900px) {
   .admin-shell { grid-template-columns: 1fr; }
   .admin-nav { position: static; height: auto; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 12px; }

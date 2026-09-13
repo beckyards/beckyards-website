@@ -15,8 +15,8 @@ function money(n) {
   return n.toLocaleString(undefined, { style: 'currency', currency: 'USD' });
 }
 
-// Click straight on a name, phone, or address to edit it in place. Saves on
-// blur (or Enter); Escape cancels without saving.
+// Click straight on a name, phone, address, or frequency to edit it in place.
+// Saves on blur (or Enter); Escape cancels without saving.
 function EditableCell({ value, placeholder, type = 'text', format, disabled, onSave }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value || '');
@@ -59,9 +59,9 @@ function EditableCell({ value, placeholder, type = 'text', format, disabled, onS
   );
 }
 
-const BLANK_ADD_FORM = { name: '', address: '', phone: '', price: '', mowing_height: '3', payment_type: '' };
+const BLANK_ADD_FORM = { name: '', address: '', phone: '', frequency: '', price: '', mowing_height: '3', payment_type: '' };
 
-function AddClientRow({ onAdd }) {
+function AddClientRow({ onAdd, showFrequency, dropProps }) {
   const [form, setForm] = useState(BLANK_ADD_FORM);
   const [busy, setBusy] = useState(false);
 
@@ -78,6 +78,7 @@ function AddClientRow({ onAdd }) {
         name: form.name.trim(),
         address: form.address.trim() || null,
         phone: form.phone.trim() || null,
+        frequency: form.frequency.trim() || null,
         price: form.price === '' ? null : Number(form.price),
         mowing_height: Number(form.mowing_height),
         payment_type: form.payment_type || null,
@@ -89,7 +90,7 @@ function AddClientRow({ onAdd }) {
   }
 
   return (
-    <tr className="admin-add-row">
+    <tr className={`admin-add-row ${dropProps?.className || ''}`} onDragOver={dropProps?.onDragOver} onDrop={dropProps?.onDrop}>
       <td></td>
       <td>
         <input
@@ -119,6 +120,17 @@ function AddClientRow({ onAdd }) {
           onChange={(e) => set('phone', formatPhoneInput(e.target.value))}
         />
       </td>
+      {showFrequency && (
+        <td>
+          <input
+            className="admin-plain-input"
+            placeholder="e.g. Once a month"
+            value={form.frequency}
+            disabled={busy}
+            onChange={(e) => set('frequency', e.target.value)}
+          />
+        </td>
+      )}
       <td>
         <select
           className="admin-height-select"
@@ -167,7 +179,15 @@ function AddClientRow({ onAdd }) {
   );
 }
 
-function RouteGroup({ label, items, busyId, onSaveField, onSavePrice, onSaveHeight, onSavePayment, onReorder, onRemove, onAdd, onDuplicate, duplicateTitle }) {
+// label: what's shown in the title ("A", "B", "Misc"). groupKey: the actual
+// route_group value ("A", "B", "misc") used for filtering and API calls.
+function RouteGroup({
+  label, groupKey, items, busyId,
+  onSaveField, onSavePrice, onSaveHeight, onSavePayment, onRemove, onAdd,
+  onDuplicate, duplicateTitle,
+  onMoveTo, showFrequency,
+  dragInfo, onRowDragStart, onRowDrop, onDragEndGlobal,
+}) {
   const [dragIndex, setDragIndex] = useState(null);
   const [overIndex, setOverIndex] = useState(null);
   const [drafts, setDrafts] = useState({});
@@ -176,18 +196,13 @@ function RouteGroup({ label, items, busyId, onSaveField, onSavePrice, onSaveHeig
     return drafts[item.id] ?? (item.price != null ? String(item.price) : '');
   }
 
-  function reorderTo(fromIndex, toIndex) {
-    if (fromIndex === toIndex || fromIndex == null || toIndex == null) return;
-    const reordered = [...items];
-    const [moved] = reordered.splice(fromIndex, 1);
-    reordered.splice(toIndex, 0, moved);
-    onReorder(reordered);
-  }
-
   const total = items.reduce((sum, i) => sum + (i.price != null ? Number(i.price) : 0), 0);
+  const isDropTarget = dragInfo != null;
+  const labelColSpan = showFrequency ? 7 : 6;
+  const title = groupKey === 'misc' ? 'Misc / Occasional Clients' : `Group ${label}`;
 
   return (
-    <Panel title={`Group ${label}`} meta={`${items.length} client${items.length === 1 ? '' : 's'}`}>
+    <Panel title={title} meta={`${items.length} client${items.length === 1 ? '' : 's'}`}>
       <div className="admin-table-wrap">
         <table className="admin-table">
           <thead>
@@ -196,6 +211,7 @@ function RouteGroup({ label, items, busyId, onSaveField, onSavePrice, onSaveHeig
               <th>Name</th>
               <th>Address</th>
               <th>Phone</th>
+              {showFrequency && <th>Frequency</th>}
               <th>Mow height</th>
               <th>Payment</th>
               <th>Price</th>
@@ -208,21 +224,21 @@ function RouteGroup({ label, items, busyId, onSaveField, onSavePrice, onSaveHeig
                 key={item.id}
                 className={
                   (dragIndex === index ? 'is-dragging ' : '') +
-                  (overIndex === index && dragIndex !== index ? 'is-drag-over' : '')
+                  (overIndex === index && !(dragInfo?.group === groupKey && dragIndex === index) ? 'is-drag-over' : '')
                 }
                 draggable
-                onDragStart={() => setDragIndex(index)}
-                onDragOver={(e) => { e.preventDefault(); if (overIndex !== index) setOverIndex(index); }}
+                onDragStart={() => { setDragIndex(index); onRowDragStart(index); }}
+                onDragOver={(e) => { e.preventDefault(); if (isDropTarget && overIndex !== index) setOverIndex(index); }}
                 onDrop={(e) => {
                   e.preventDefault();
-                  reorderTo(dragIndex, index);
+                  onRowDrop(index);
                   setDragIndex(null);
                   setOverIndex(null);
                 }}
-                onDragEnd={() => { setDragIndex(null); setOverIndex(null); }}
+                onDragEnd={() => { setDragIndex(null); setOverIndex(null); onDragEndGlobal(); }}
               >
                 <td>
-                  <span className="admin-drag-handle" title="Drag to reorder" aria-hidden="true">⠿</span>
+                  <span className="admin-drag-handle" title="Drag to reorder or move" aria-hidden="true">⠿</span>
                 </td>
                 <td>
                   <EditableCell
@@ -250,6 +266,16 @@ function RouteGroup({ label, items, busyId, onSaveField, onSavePrice, onSaveHeig
                     onSave={(v) => onSaveField(item, 'phone', v)}
                   />
                 </td>
+                {showFrequency && (
+                  <td>
+                    <EditableCell
+                      value={item.frequency}
+                      placeholder="+ Add frequency"
+                      disabled={busyId === item.id}
+                      onSave={(v) => onSaveField(item, 'frequency', v)}
+                    />
+                  </td>
+                )}
                 <td>
                   <select
                     className="admin-height-select"
@@ -308,6 +334,28 @@ function RouteGroup({ label, items, busyId, onSaveField, onSavePrice, onSaveHeig
                         </svg>
                       </button>
                     )}
+                    {onMoveTo && (
+                      <>
+                        <button
+                          type="button"
+                          className="admin-mini admin-move-btn"
+                          title="Put on Group A"
+                          disabled={busyId === item.id}
+                          onClick={() => onMoveTo(item, 'A')}
+                        >
+                          A
+                        </button>
+                        <button
+                          type="button"
+                          className="admin-mini admin-move-btn"
+                          title="Put on Group B"
+                          disabled={busyId === item.id}
+                          onClick={() => onMoveTo(item, 'B')}
+                        >
+                          B
+                        </button>
+                      </>
+                    )}
                     <button
                       type="button"
                       className="admin-mini admin-mini-danger"
@@ -320,18 +368,25 @@ function RouteGroup({ label, items, busyId, onSaveField, onSavePrice, onSaveHeig
                 </td>
               </tr>
             ))}
-            <AddClientRow onAdd={onAdd} />
+            <AddClientRow
+              onAdd={onAdd}
+              showFrequency={showFrequency}
+              dropProps={{
+                className: overIndex === items.length && isDropTarget ? 'is-drag-over' : '',
+                onDragOver: (e) => { e.preventDefault(); if (isDropTarget && overIndex !== items.length) setOverIndex(items.length); },
+                onDrop: (e) => { e.preventDefault(); onRowDrop(items.length); setOverIndex(null); },
+              }}
+            />
           </tbody>
-          {items.length > 0 && (
-            <tfoot>
-              <tr>
-                <td colSpan={6} className="admin-table-total-label">Total for Group {label}</td>
-                <td colSpan={2} className="admin-table-total-value">{money(total)}</td>
-              </tr>
-            </tfoot>
-          )}
+          <tfoot>
+            <tr>
+              <td colSpan={labelColSpan} className="admin-table-total-label">Total for {groupKey === 'misc' ? 'Misc' : `Group ${label}`}</td>
+              <td colSpan={2} className="admin-table-total-value">{money(total)}</td>
+            </tr>
+          </tfoot>
         </table>
       </div>
+      <p className="admin-route-count">{items.length} client{items.length === 1 ? '' : 's'} on this {groupKey === 'misc' ? 'list' : 'route'}.</p>
     </Panel>
   );
 }
@@ -340,6 +395,8 @@ export default function MowingRouteView() {
   const [items, setItems] = useState(null);
   const [error, setError] = useState('');
   const [busyId, setBusyId] = useState(null);
+  const [showMisc, setShowMisc] = useState(false);
+  const [drag, setDrag] = useState(null); // { group, index } -- group is a route_group key
 
   const load = useCallback(() => {
     setError('');
@@ -486,6 +543,35 @@ export default function MowingRouteView() {
     });
   }
 
+  // Moves an existing client to a different group (used by both the Misc
+  // "A" / "B" buttons and cross-section drag-and-drop). targetIndex places it
+  // within the target group's current order; omit to append at the end.
+  async function moveToGroup(item, targetGroup, targetIndex) {
+    setBusyId(item.id);
+    setError('');
+    try {
+      const res = await fetch('/api/admin/mowing-route', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: item.id, route_group: targetGroup }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) { setError(d.error || 'Could not move that client.'); return; }
+
+      const updatedItem = { ...item, route_group: targetGroup };
+      const withoutItem = (items || []).filter((i) => i.id !== item.id);
+      const targetItems = withoutItem.filter((i) => i.route_group === targetGroup);
+      const otherItems = withoutItem.filter((i) => i.route_group !== targetGroup);
+      const insertAt = targetIndex == null ? targetItems.length : Math.min(Math.max(targetIndex, 0), targetItems.length);
+      targetItems.splice(insertAt, 0, updatedItem);
+
+      setItems([...otherItems, ...targetItems]);
+      persistOrder(targetGroup, targetItems);
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   async function add(group, fields) {
     setError('');
     try {
@@ -504,13 +590,35 @@ export default function MowingRouteView() {
     }
   }
 
+  function handleRowDrop(targetGroup, targetIndex) {
+    if (!drag || !items) { setDrag(null); return; }
+    if (drag.group === targetGroup) {
+      if (drag.index !== targetIndex) {
+        const groupItems = items.filter((i) => i.route_group === targetGroup);
+        const reordered = [...groupItems];
+        const [moved] = reordered.splice(drag.index, 1);
+        reordered.splice(targetIndex, 0, moved);
+        reorderGroup(targetGroup, reordered);
+      }
+    } else if (drag.group === 'misc' || targetGroup === 'misc') {
+      const sourceItems = items.filter((i) => i.route_group === drag.group);
+      const movedItem = sourceItems[drag.index];
+      if (movedItem) moveToGroup(movedItem, targetGroup, targetIndex);
+    }
+    setDrag(null);
+  }
+
+  const miscCount = items ? items.filter((i) => i.route_group === 'misc').length : 0;
+
   return (
     <div className="admin-page">
-      <h1>Route</h1>
+      <h1>Clients</h1>
       <p className="admin-lead">
         Your two mowing crews' routes. Add clients to either group, click any name, address, or
         phone to edit it, set the cut height, payment type, and price, and drag a row by its
-        handle to reorder the route however you drive it.
+        handle to reorder the route however you drive it. Occasional clients (one-time mows,
+        every-few-weeks, etc.) live in Misc — drag them into Group A or B, or use the A / B
+        buttons, whenever they're on the schedule.
       </p>
 
       {error && <p className="admin-error">{error}</p>}
@@ -521,31 +629,68 @@ export default function MowingRouteView() {
         <>
           <RouteGroup
             label="A"
+            groupKey="A"
             items={items.filter((i) => i.route_group === 'A')}
             busyId={busyId}
             onSaveField={saveField}
             onSavePrice={savePrice}
             onSaveHeight={saveHeight}
             onSavePayment={savePayment}
-            onReorder={(reordered) => reorderGroup('A', reordered)}
             onRemove={remove}
             onAdd={(fields) => add('A', fields)}
             onDuplicate={(item) => duplicateToGroup(item, 'B')}
             duplicateTitle="Copy to Group B"
+            dragInfo={drag}
+            onRowDragStart={(index) => setDrag({ group: 'A', index })}
+            onRowDrop={(index) => handleRowDrop('A', index)}
+            onDragEndGlobal={() => setDrag(null)}
           />
           <div style={{ height: 20 }} />
           <RouteGroup
             label="B"
+            groupKey="B"
             items={items.filter((i) => i.route_group === 'B')}
             busyId={busyId}
             onSaveField={saveField}
             onSavePrice={savePrice}
             onSaveHeight={saveHeight}
             onSavePayment={savePayment}
-            onReorder={(reordered) => reorderGroup('B', reordered)}
             onRemove={remove}
             onAdd={(fields) => add('B', fields)}
+            dragInfo={drag}
+            onRowDragStart={(index) => setDrag({ group: 'B', index })}
+            onRowDrop={(index) => handleRowDrop('B', index)}
+            onDragEndGlobal={() => setDrag(null)}
           />
+
+          <div style={{ height: 20 }} />
+          <button type="button" className="admin-mini" onClick={() => setShowMisc((v) => !v)}>
+            {showMisc ? 'Hide' : 'Show'} Misc / Occasional Clients ({miscCount})
+          </button>
+
+          {showMisc && (
+            <>
+              <div style={{ height: 12 }} />
+              <RouteGroup
+                label="Misc"
+                groupKey="misc"
+                items={items.filter((i) => i.route_group === 'misc')}
+                busyId={busyId}
+                onSaveField={saveField}
+                onSavePrice={savePrice}
+                onSaveHeight={saveHeight}
+                onSavePayment={savePayment}
+                onRemove={remove}
+                onAdd={(fields) => add('misc', fields)}
+                onMoveTo={(item, targetGroup) => moveToGroup(item, targetGroup)}
+                showFrequency
+                dragInfo={drag}
+                onRowDragStart={(index) => setDrag({ group: 'misc', index })}
+                onRowDrop={(index) => handleRowDrop('misc', index)}
+                onDragEndGlobal={() => setDrag(null)}
+              />
+            </>
+          )}
         </>
       )}
     </div>

@@ -43,6 +43,11 @@ const I = {
       <circle cx="12" cy="12" r="3" /><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8" />
     </svg>
   ),
+  route: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+    </svg>
+  ),
 };
 
 const LINKS = [
@@ -50,7 +55,8 @@ const LINKS = [
   { href: '/admin/analytics', label: 'Analytics', icon: I.analytics },
   { href: '/admin/messages', label: 'Messages', icon: I.messages },
   { href: '/admin/aeration', label: 'Aeration List', icon: I.aeration },
-  { href: '/admin/mowing-route', label: 'Route', icon: I.mowing },
+  { href: '/admin/mowing-route', label: 'Clients', icon: I.mowing },
+  { href: '/admin/route-run', label: 'Route', icon: I.route },
   { href: '/admin/images', label: 'Images', icon: I.images },
   { href: '/admin/content', label: 'Content', icon: I.content },
 ];

@@ -143,8 +143,12 @@ export default function Dashboard() {
           <p>Everyone who signed up for aeration & overseeding, with a spot to set their price.</p>
         </a>
         <a className="admin-card" href="/admin/mowing-route">
-          <h2>Route →</h2>
+          <h2>Clients →</h2>
           <p>Group A and Group B crews' client lists — drag to set the driving order.</p>
+        </a>
+        <a className="admin-card" href="/admin/route-run">
+          <h2>Route →</h2>
+          <p>Pick Route A or B, check clients off as you mow, and look back at completed routes.</p>
         </a>
         <a className="admin-card" href="/admin/images">
           <h2>Images →</h2>

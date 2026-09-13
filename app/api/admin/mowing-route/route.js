@@ -3,8 +3,8 @@ import { requireAdminClient } from '../../../../lib/adminAuth';
 
 export const dynamic = 'force-dynamic';
 
-const GROUPS = new Set(['A', 'B']);
-const EDITABLE_TEXT_FIELDS = ['name', 'phone', 'address'];
+const GROUPS = new Set(['A', 'B', 'misc']);
+const EDITABLE_TEXT_FIELDS = ['name', 'phone', 'address', 'frequency'];
 const PAYMENT_TYPES = new Set(['Venmo', 'Cash', 'Check', 'Bill']);
 
 function validHeight(value) {
@@ -27,7 +27,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from('mowing_clients')
-    .select('id, name, address, phone, price, mowing_height, payment_type, route_group, sort_order, created_at')
+    .select('id, name, address, phone, price, mowing_height, payment_type, frequency, route_group, sort_order, created_at')
     .order('sort_order', { ascending: true })
     .limit(1000);
 
@@ -53,7 +53,7 @@ export async function POST(request) {
 
   const routeGroup = body?.route_group;
   if (!GROUPS.has(routeGroup)) {
-    return NextResponse.json({ error: 'route_group must be "A" or "B".' }, { status: 400 });
+    return NextResponse.json({ error: 'route_group must be "A", "B", or "misc".' }, { status: 400 });
   }
 
   let price = null;
@@ -84,8 +84,9 @@ export async function POST(request) {
       price,
       mowing_height: mowingHeight,
       payment_type: paymentType,
+      frequency: body.frequency ? String(body.frequency).trim() : null,
     }])
-    .select('id, name, address, phone, price, mowing_height, payment_type, route_group, sort_order, created_at')
+    .select('id, name, address, phone, price, mowing_height, payment_type, frequency, route_group, sort_order, created_at')
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -94,10 +95,11 @@ export async function POST(request) {
 }
 
 // What this admin edits on a route:
-//   { id, name | phone | address } -- any contact detail, in place
+//   { id, name | phone | address | frequency } -- any contact/schedule detail, in place
 //   { id, price }                  -- what they're being charged
 //   { id, mowing_height }          -- cut height, 2-5" in .25 steps
 //   { id, payment_type }           -- Venmo, Cash, Check, or Bill
+//   { id, route_group }            -- move the client to "A", "B", or "misc" (appended to the end)
 //   { group, reorder: [ids] }      -- the full list for one group, top to bottom, after a manual move
 export async function PATCH(request) {
   const { client: supabase, error: authError } = await requireAdminClient();
@@ -113,7 +115,7 @@ export async function PATCH(request) {
   if (Array.isArray(body?.reorder)) {
     const ids = body.reorder;
     if (!GROUPS.has(body.group)) {
-      return NextResponse.json({ error: 'group must be "A" or "B".' }, { status: 400 });
+      return NextResponse.json({ error: 'group must be "A", "B", or "misc".' }, { status: 400 });
     }
     if (ids.length === 0 || ids.length > 500) {
       return NextResponse.json({ error: 'Invalid reorder list.' }, { status: 400 });
@@ -161,6 +163,16 @@ export async function PATCH(request) {
       return NextResponse.json({ error: 'Payment type must be Venmo, Cash, Check, or Bill.' }, { status: 400 });
     }
     patch.payment_type = paymentType;
+  }
+
+  if ('route_group' in body) {
+    if (!GROUPS.has(body.route_group)) {
+      return NextResponse.json({ error: 'route_group must be "A", "B", or "misc".' }, { status: 400 });
+    }
+    patch.route_group = body.route_group;
+    // Land at the end of the new group by default; a follow-up reorder call
+    // (sent by the client right after a cross-group drag) refines the exact spot.
+    patch.sort_order = Date.now();
   }
 
   for (const field of EDITABLE_TEXT_FIELDS) {
