@@ -1,7 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Skeleton } from './ui';
+import { formatPhoneInput } from '../../../../lib/phone';
 
 const SERVICE_LABELS = {
   aeration: 'Aeration Only',
@@ -15,6 +16,55 @@ function fullDate(iso) {
 
 function money(n) {
   return n.toLocaleString(undefined, { style: 'currency', currency: 'USD' });
+}
+
+// Click straight on a name, phone, email, or address to edit it in place.
+// Saves on blur (or Enter); Escape cancels without saving.
+function EditableCell({ value, placeholder, type = 'text', format, disabled, onSave }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value || '');
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (!editing) setDraft(value || '');
+  }, [value, editing]);
+
+  useEffect(() => {
+    if (editing) inputRef.current?.focus();
+  }, [editing]);
+
+  function commit() {
+    setEditing(false);
+    const next = draft.trim();
+    if (next !== (value || '')) onSave(next);
+  }
+
+  if (editing) {
+    return (
+      <input
+        ref={inputRef}
+        className="admin-inline-input"
+        type={type}
+        value={draft}
+        onChange={(e) => setDraft(format ? format(e.target.value) : e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') e.currentTarget.blur();
+          if (e.key === 'Escape') { setDraft(value || ''); setEditing(false); }
+        }}
+      />
+    );
+  }
+
+  return (
+    <span
+      className="admin-editable-text"
+      title="Click to edit"
+      onClick={() => !disabled && setEditing(true)}
+    >
+      {value ? value : <span className="admin-editable-placeholder">{placeholder}</span>}
+    </span>
+  );
 }
 
 export default function AerationView() {
@@ -62,6 +112,23 @@ export default function AerationView() {
       const d = await res.json().catch(() => ({}));
       if (!res.ok) { setError(d.error || 'Could not save the price.'); return; }
       setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, price: next } : i)));
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function saveField(item, field, value) {
+    setBusyId(item.id);
+    setError('');
+    try {
+      const res = await fetch('/api/admin/aeration', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: item.id, [field]: value }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) { setError(d.error || 'Could not save that.'); return; }
+      setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, [field]: value || null } : i)));
     } finally {
       setBusyId(null);
     }
@@ -137,9 +204,9 @@ export default function AerationView() {
     <div className="admin-page">
       <h1>Aeration List</h1>
       <p className="admin-lead">
-        Everyone who signed up for aeration &amp; overseeding through the site. Add what you're
-        charging each person, check them off once done, and drag a row by its handle to reorder
-        the list however you'd like to work through them.
+        Everyone who signed up for aeration &amp; overseeding through the site. Click any name,
+        phone, email, or address to edit it, add what you're charging, check them off once done,
+        and drag a row by its handle to reorder the list however you'd like to work through them.
       </p>
 
       {error && <p className="admin-error">{error}</p>}
@@ -197,10 +264,41 @@ export default function AerationView() {
                       aria-label={`Mark ${item.name} as ${item.completed ? 'not done' : 'done'}`}
                     />
                   </td>
-                  <td>{item.name}</td>
-                  <td><a className="admin-table-link" href={`tel:${item.phone}`}>{item.phone}</a></td>
-                  <td>{item.email && <a className="admin-table-link" href={`mailto:${item.email}`}>{item.email}</a>}</td>
-                  <td>{item.address}</td>
+                  <td>
+                    <EditableCell
+                      value={item.name}
+                      placeholder="Name"
+                      disabled={busyId === item.id}
+                      onSave={(v) => saveField(item, 'name', v)}
+                    />
+                  </td>
+                  <td>
+                    <EditableCell
+                      value={item.phone}
+                      placeholder="Phone"
+                      type="tel"
+                      format={formatPhoneInput}
+                      disabled={busyId === item.id}
+                      onSave={(v) => saveField(item, 'phone', v)}
+                    />
+                  </td>
+                  <td>
+                    <EditableCell
+                      value={item.email}
+                      placeholder="+ Add email"
+                      type="email"
+                      disabled={busyId === item.id}
+                      onSave={(v) => saveField(item, 'email', v)}
+                    />
+                  </td>
+                  <td>
+                    <EditableCell
+                      value={item.address}
+                      placeholder="Address"
+                      disabled={busyId === item.id}
+                      onSave={(v) => saveField(item, 'address', v)}
+                    />
+                  </td>
                   <td>{SERVICE_LABELS[item.service_type] || item.service_type}</td>
                   <td>{fullDate(item.created_at)}</td>
                   <td>

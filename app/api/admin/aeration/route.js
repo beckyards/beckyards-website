@@ -18,7 +18,10 @@ export async function GET() {
   return NextResponse.json({ items: data || [] });
 }
 
-// Three things this admin edits on the list:
+const EDITABLE_TEXT_FIELDS = ['name', 'phone', 'email', 'address'];
+
+// What this admin edits on the list:
+//   { id, name | phone | email | address } -- any contact detail, in place
 //   { id, price }        -- what they're being charged
 //   { id, completed }    -- done or not
 //   { reorder: [ids] }   -- the full list, top to bottom, after a manual move
@@ -70,6 +73,15 @@ export async function PATCH(request) {
 
   if ('completed' in body) {
     patch.completed = Boolean(body.completed);
+  }
+
+  for (const field of EDITABLE_TEXT_FIELDS) {
+    if (!(field in body)) continue;
+    const value = typeof body[field] === 'string' ? body[field].trim() : body[field];
+    if (field !== 'email' && !value) {
+      return NextResponse.json({ error: `${field[0].toUpperCase()}${field.slice(1)} can't be empty.` }, { status: 400 });
+    }
+    patch[field] = value || null; // email may be cleared back to null
   }
 
   if (Object.keys(patch).length === 0) {

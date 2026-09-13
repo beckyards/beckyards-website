@@ -212,6 +212,16 @@
 .admin-table tfoot td { padding: 12px 14px; border-top: 2px solid var(--a-line); font-weight: 700; }
 .admin-table-total-label { text-align: right; color: var(--a-dim); font-weight: 600; }
 .admin-table-total-value { color: var(--a-text); font-size: 15px; }
+.admin-editable-text {
+  cursor: text; border-bottom: 1px dashed transparent; padding-bottom: 1px;
+}
+.admin-editable-text:hover { border-bottom-color: var(--a-line); }
+.admin-editable-placeholder { color: var(--a-accent); font-style: italic; }
+.admin-inline-input {
+  width: 100%; min-width: 110px; padding: 4px 6px; border: 1px solid var(--a-accent); border-radius: 6px;
+  font: inherit; background: var(--a-panel-2); color: var(--a-text);
+}
+.admin-inline-input:focus { outline: 2px solid var(--a-accent); outline-offset: 1px; }
 
 /* ---------- Messages ---------- */
 .msg-list { display: flex; flex-direction: column; }
