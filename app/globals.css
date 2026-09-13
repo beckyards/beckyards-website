@@ -232,6 +232,10 @@ header.is-solid{
   letter-spacing: normal;
 }
 
+/* Services dropdown: just the name, one line — no subtitle underneath. */
+.nav-dropdown-menu-compact{ min-width: 180px; }
+.nav-dropdown-menu-compact a{ padding: 8px 14px; }
+
 /* ---------- Hero ---------- */
 
 .hero{

@@ -37,11 +37,10 @@ export default function Header() {
           {!isHome && <a href="/">Home</a>}
           <div className="nav-dropdown">
             <a href="/services" className="nav-dropdown-trigger">Services</a>
-            <div className="nav-dropdown-menu">
+            <div className="nav-dropdown-menu nav-dropdown-menu-compact">
               {SERVICES.map((service) => (
                 <a href={`/services/${service.slug}`} key={service.slug}>
                   <b>{service.title}</b>
-                  <span>{service.subtitle}</span>
                 </a>
               ))}
             </div>
