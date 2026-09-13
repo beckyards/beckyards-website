@@ -52,7 +52,11 @@ export default async function ServicePage({ params }) {
                 ))}
               </ul>
             )}
-            <a className="btn btn-solid" href="/contact">Get a Free Quote</a>
+            {service.slug === 'aeration-overseeding' ? (
+              <a className="btn btn-solid" href="/aeration-signup">Sign Up</a>
+            ) : (
+              <a className="btn btn-solid" href="/contact">Get a Free Quote</a>
+            )}
           </section>
         </div>
 

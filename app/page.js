@@ -56,7 +56,7 @@ export default async function Home() {
                     ))}
                   </ul>
                 )}
-                <a className="btn btn-solid" href="/contact">{c.aerationCtaLabel}</a>
+                <a className="btn btn-solid" href="/aeration-signup">{c.aerationCtaLabel}</a>
               </section>
             </div>
           </div>

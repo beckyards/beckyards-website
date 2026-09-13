@@ -55,7 +55,13 @@ export default function Header() {
               ))}
             </div>
           </div>
-          <a href="/contact">Contact</a>
+          <div className="nav-dropdown">
+            <a href="/contact" className="nav-dropdown-trigger">Contact</a>
+            <div className="nav-dropdown-menu nav-dropdown-menu-compact">
+              <a href="/contact"><b>Get a Quote</b></a>
+              <a href="/aeration-signup"><b>Aeration Signup</b></a>
+            </div>
+          </div>
         </nav>
         <a className="btn btn-solid btn-sm nav-cta" href="/contact">Free Quote</a>
         <button
@@ -94,6 +100,8 @@ export default function Header() {
           </div>
           <div className="mobile-menu-group">
             <a href="/contact" className="mobile-menu-heading" onClick={closeMobile}>Contact</a>
+            <a href="/contact" className="mobile-submenu-link" onClick={closeMobile}>Get a Quote</a>
+            <a href="/aeration-signup" className="mobile-submenu-link" onClick={closeMobile}>Aeration Signup</a>
           </div>
           <a className="btn btn-solid btn-sm" href="/contact" onClick={closeMobile}>Free Quote</a>
         </div>

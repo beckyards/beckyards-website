@@ -138,6 +138,10 @@ export default function Dashboard() {
           <h2>Analytics →</h2>
           <p>Traffic trends, top pages, referrers, devices and countries over 7–90 days.</p>
         </a>
+        <a className="admin-card" href="/admin/aeration">
+          <h2>Aeration List →</h2>
+          <p>Everyone who signed up for aeration & overseeding, with a spot to set their price.</p>
+        </a>
         <a className="admin-card" href="/admin/images">
           <h2>Images →</h2>
           <p>Upload photos, rename them to something you'll recognize, copy URLs, or delete.</p>

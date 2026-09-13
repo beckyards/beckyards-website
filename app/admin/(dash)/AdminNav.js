@@ -32,12 +32,19 @@ const I = {
       <path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z" />
     </svg>
   ),
+  aeration: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" />
+      <line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" />
+    </svg>
+  ),
 };
 
 const LINKS = [
   { href: '/admin', label: 'Dashboard', icon: I.dashboard },
   { href: '/admin/analytics', label: 'Analytics', icon: I.analytics },
   { href: '/admin/messages', label: 'Messages', icon: I.messages },
+  { href: '/admin/aeration', label: 'Aeration List', icon: I.aeration },
   { href: '/admin/images', label: 'Images', icon: I.images },
   { href: '/admin/content', label: 'Content', icon: I.content },
 ];

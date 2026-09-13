@@ -898,7 +898,8 @@ header.is-solid{
 .form-field{ display:flex; flex-direction:column; gap:8px; margin-bottom: 20px; }
 .form-field label{ font-size: 13px; color: var(--grey); letter-spacing: 0.03em; }
 .form-field input,
-.form-field textarea{
+.form-field textarea,
+.form-field select{
   background: #fffdfa;
   border: 1px solid var(--line);
   border-radius: 2px;
@@ -908,7 +909,8 @@ header.is-solid{
   font-size: 14px;
 }
 .form-field input:focus,
-.form-field textarea:focus{ outline: none; border-color: var(--green); }
+.form-field textarea:focus,
+.form-field select:focus{ outline: none; border-color: var(--green); }
 .form-field textarea{ min-height: 120px; resize: vertical; }
 
 .form-status{ margin-top: 14px; font-size: 14px; }
