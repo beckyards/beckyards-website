@@ -14,12 +14,19 @@ export async function GET() {
   const { client: supabase, error: authError } = await requireAdminClient();
   if (authError) return authError;
 
-  const { data, error } = await supabase.storage.from(BUCKET).list('', {
-    limit: 1000,
-    sortBy: { column: 'created_at', order: 'desc' },
-  });
+  let data, error;
+  try {
+    ({ data, error } = await supabase.storage.from(BUCKET).list('', {
+      limit: 1000,
+      sortBy: { column: 'created_at', order: 'desc' },
+    }));
+  } catch (err) {
+    console.error('[GET /api/admin/media] storage.list() threw:', JSON.stringify(err, Object.getOwnPropertyNames(err)), err?.stack);
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
 
   if (error) {
+    console.error('[GET /api/admin/media] storage.list() returned an error:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
