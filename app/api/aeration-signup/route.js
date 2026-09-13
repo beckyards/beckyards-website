@@ -7,9 +7,9 @@ export async function POST(request) {
   try {
     const { name, phone, email, address, serviceType } = await request.json();
 
-    if (!name || !phone || !email || !address) {
+    if (!name || !phone) {
       return NextResponse.json(
-        { error: 'Name, phone, email, and address are all required.' },
+        { error: 'Name and phone are required.' },
         { status: 400 }
       );
     }
@@ -18,8 +18,8 @@ export async function POST(request) {
       {
         name,
         phone,
-        email,
-        address,
+        email: email || null,
+        address: address || null,
         service_type: VALID_SERVICE_TYPES.has(serviceType) ? serviceType : 'aeration_overseeding',
       },
     ]);

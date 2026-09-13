@@ -44,8 +44,9 @@ export default function AerationSignupForm() {
           <div className="eyebrow">Seasonal Service</div>
           <h2>Aeration & Overseeding Signup</h2>
           <p>
-            Give us your name, phone number, email, and address, and let us know which
-            service you're interested in. We'll follow up with pricing and get you on the schedule.
+            Give us your name and phone number so we can reach you — email, address, and
+            which service you're interested in are helpful but optional. We'll follow up
+            with pricing and get you on the schedule.
           </p>
         </div>
 
@@ -75,24 +76,22 @@ export default function AerationSignupForm() {
             />
           </div>
           <div className="form-field">
-            <label htmlFor="email">Email</label>
+            <label htmlFor="email">Email (optional)</label>
             <input
               id="email"
               name="email"
               type="email"
-              required
               value={form.email}
               onChange={handleChange}
               placeholder="your.email@example.com"
             />
           </div>
           <div className="form-field">
-            <label htmlFor="address">Address</label>
+            <label htmlFor="address">Address (optional)</label>
             <input
               id="address"
               name="address"
               type="text"
-              required
               value={form.address}
               onChange={handleChange}
               placeholder="123 Main Street, City, State, ZIP"
