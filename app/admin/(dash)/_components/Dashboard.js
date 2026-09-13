@@ -142,6 +142,10 @@ export default function Dashboard() {
           <h2>Aeration List →</h2>
           <p>Everyone who signed up for aeration & overseeding, with a spot to set their price.</p>
         </a>
+        <a className="admin-card" href="/admin/mowing-route">
+          <h2>Route →</h2>
+          <p>Group A and Group B crews' client lists — drag to set the driving order.</p>
+        </a>
         <a className="admin-card" href="/admin/images">
           <h2>Images →</h2>
           <p>Upload photos, rename them to something you'll recognize, copy URLs, or delete.</p>

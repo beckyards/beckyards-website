@@ -222,6 +222,20 @@
   font: inherit; background: var(--a-panel-2); color: var(--a-text);
 }
 .admin-inline-input:focus { outline: 2px solid var(--a-accent); outline-offset: 1px; }
+.admin-height-select {
+  padding: 5px 7px; border: 1px solid var(--a-line); border-radius: 7px; font: inherit;
+  background: var(--a-panel-2); color: var(--a-text); cursor: pointer;
+}
+.admin-height-select:focus { outline: 2px solid var(--a-accent); outline-offset: 1px; border-color: transparent; }
+.admin-plain-input {
+  width: 100%; min-width: 100px; padding: 5px 7px; border: 1px solid var(--a-line); border-radius: 7px;
+  font: inherit; background: var(--a-panel-2); color: var(--a-text);
+}
+.admin-plain-input:focus { outline: 2px solid var(--a-accent); outline-offset: 1px; border-color: transparent; }
+.admin-add-row td { background: var(--a-panel-2); }
+.admin-row-actions { display: flex; gap: 6px; }
+.admin-icon-btn { display: inline-flex; align-items: center; justify-content: center; padding: 5px; }
+.admin-icon-btn svg { width: 14px; height: 14px; }
 
 /* ---------- Messages ---------- */
 .msg-list { display: flex; flex-direction: column; }
