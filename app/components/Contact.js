@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { formatPhoneInput } from '../../lib/phone';
 
 const EMPTY = { name: '', phone: '', email: '', address: '', message: '' };
 
@@ -9,7 +10,8 @@ export default function Contact({ c }) {
   const [status, setStatus] = useState({ state: 'idle', message: '' });
 
   function handleChange(e) {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: name === 'phone' ? formatPhoneInput(value) : value });
   }
 
   async function handleSubmit(e) {

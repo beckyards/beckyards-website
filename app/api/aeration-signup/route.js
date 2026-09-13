@@ -5,11 +5,11 @@ const VALID_SERVICE_TYPES = new Set(['aeration', 'aeration_overseeding']);
 
 export async function POST(request) {
   try {
-    const { name, phone, address, serviceType } = await request.json();
+    const { name, phone, email, address, serviceType } = await request.json();
 
-    if (!name || !phone || !address) {
+    if (!name || !phone || !email || !address) {
       return NextResponse.json(
-        { error: 'Name, phone, and address are all required.' },
+        { error: 'Name, phone, email, and address are all required.' },
         { status: 400 }
       );
     }
@@ -18,6 +18,7 @@ export async function POST(request) {
       {
         name,
         phone,
+        email,
         address,
         service_type: VALID_SERVICE_TYPES.has(serviceType) ? serviceType : 'aeration_overseeding',
       },

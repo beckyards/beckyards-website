@@ -9,7 +9,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from('aeration_signups')
-    .select('id, name, phone, address, service_type, price, created_at')
+    .select('id, name, phone, email, address, service_type, price, created_at')
     .order('created_at', { ascending: false })
     .limit(500);
 

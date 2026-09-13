@@ -1,15 +1,17 @@
 'use client';
 
 import { useState } from 'react';
+import { formatPhoneInput } from '../../lib/phone';
 
-const EMPTY = { name: '', phone: '', address: '', serviceType: 'aeration_overseeding' };
+const EMPTY = { name: '', phone: '', email: '', address: '', serviceType: 'aeration_overseeding' };
 
 export default function AerationSignupForm() {
   const [form, setForm] = useState(EMPTY);
   const [status, setStatus] = useState({ state: 'idle', message: '' });
 
   function handleChange(e) {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: name === 'phone' ? formatPhoneInput(value) : value });
   }
 
   async function handleSubmit(e) {
@@ -42,8 +44,8 @@ export default function AerationSignupForm() {
           <div className="eyebrow">Seasonal Service</div>
           <h2>Aeration & Overseeding Signup</h2>
           <p>
-            Give us your name, phone number, and address, and let us know which service
-            you're interested in. We'll follow up with pricing and get you on the schedule.
+            Give us your name, phone number, email, and address, and let us know which
+            service you're interested in. We'll follow up with pricing and get you on the schedule.
           </p>
         </div>
 
@@ -70,6 +72,18 @@ export default function AerationSignupForm() {
               value={form.phone}
               onChange={handleChange}
               placeholder="(555) 123-4567"
+            />
+          </div>
+          <div className="form-field">
+            <label htmlFor="email">Email</label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              required
+              value={form.email}
+              onChange={handleChange}
+              placeholder="your.email@example.com"
             />
           </div>
           <div className="form-field">

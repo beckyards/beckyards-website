@@ -99,6 +99,7 @@ export default function AerationView() {
               <tr>
                 <th>Name</th>
                 <th>Phone</th>
+                <th>Email</th>
                 <th>Address</th>
                 <th>Service</th>
                 <th>Signed up</th>
@@ -111,6 +112,7 @@ export default function AerationView() {
                 <tr key={item.id}>
                   <td>{item.name}</td>
                   <td><a className="admin-table-link" href={`tel:${item.phone}`}>{item.phone}</a></td>
+                  <td>{item.email && <a className="admin-table-link" href={`mailto:${item.email}`}>{item.email}</a>}</td>
                   <td>{item.address}</td>
                   <td>{SERVICE_LABELS[item.service_type] || item.service_type}</td>
                   <td>{fullDate(item.created_at)}</td>
