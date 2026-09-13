@@ -14,24 +14,13 @@ export async function GET() {
   const { client: supabase, error: authError } = await requireAdminClient();
   if (authError) return authError;
 
-  let data, error;
-  try {
-    ({ data, error } = await supabase.storage.from(BUCKET).list('', {
-      limit: 1000,
-      sortBy: { column: 'created_at', order: 'desc' },
-    }));
-  } catch (err) {
-    return NextResponse.json(
-      { error: 'DIAGNOSTIC: storage.list threw: ' + err.message, diagnosticDetail: { name: err.name, message: err.message, stack: err.stack } },
-      { status: 500 }
-    );
-  }
+  const { data, error } = await supabase.storage.from(BUCKET).list('', {
+    limit: 1000,
+    sortBy: { column: 'created_at', order: 'desc' },
+  });
 
   if (error) {
-    return NextResponse.json(
-      { error: 'DIAGNOSTIC: storage.list returned error: ' + error.message, diagnosticDetail: { name: error.name, message: error.message, stack: error.stack } },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
   const items = (data || [])
