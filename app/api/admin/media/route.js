@@ -21,13 +21,17 @@ export async function GET() {
       sortBy: { column: 'created_at', order: 'desc' },
     }));
   } catch (err) {
-    console.error('[GET /api/admin/media] storage.list() threw:', JSON.stringify(err, Object.getOwnPropertyNames(err)), err?.stack);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json(
+      { error: 'DIAGNOSTIC: storage.list threw: ' + err.message, diagnosticDetail: { name: err.name, message: err.message, stack: err.stack } },
+      { status: 500 }
+    );
   }
 
   if (error) {
-    console.error('[GET /api/admin/media] storage.list() returned an error:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: 'DIAGNOSTIC: storage.list returned error: ' + error.message, diagnosticDetail: { name: error.name, message: error.message, stack: error.stack } },
+      { status: 500 }
+    );
   }
 
   const items = (data || [])

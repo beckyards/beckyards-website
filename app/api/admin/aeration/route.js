@@ -7,13 +7,26 @@ export async function GET() {
   const { client: supabase, error: authError } = await requireAdminClient();
   if (authError) return authError;
 
-  const { data, error } = await supabase
-    .from('aeration_signups')
-    .select('id, name, phone, email, address, service_type, price, completed, sort_order, created_at')
-    .order('sort_order', { ascending: false })
-    .limit(500);
+  let data, error;
+  try {
+    ({ data, error } = await supabase
+      .from('aeration_signups')
+      .select('id, name, phone, email, address, service_type, price, completed, sort_order, created_at')
+      .order('sort_order', { ascending: false })
+      .limit(500));
+  } catch (err) {
+    return NextResponse.json(
+      { error: 'DIAGNOSTIC: select threw: ' + err.message, diagnosticDetail: { name: err.name, message: err.message, stack: err.stack } },
+      { status: 500 }
+    );
+  }
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    return NextResponse.json(
+      { error: 'DIAGNOSTIC: select returned error: ' + error.message, diagnosticDetail: { name: error.name, message: error.message, stack: error.stack } },
+      { status: 500 }
+    );
+  }
 
   return NextResponse.json({ items: data || [] });
 }
