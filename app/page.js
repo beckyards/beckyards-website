@@ -1,7 +1,7 @@
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Contact from './components/Contact';
-import { SERVICES } from '../lib/services';
+import { SERVICES, getService } from '../lib/services';
 import { PROGRAMS } from '../lib/programs';
 import { HOME_DEFAULT, CONTACT_PAGE_DEFAULT } from '../lib/pageContent';
 import { getContent } from '../lib/siteContent';
@@ -13,6 +13,7 @@ export default async function Home() {
   const programs = await getContent('programs', PROGRAMS);
   const c = await getContent('home', HOME_DEFAULT);
   const contactContent = await getContent('contact', CONTACT_PAGE_DEFAULT);
+  const aeration = getService('aeration-overseeding', services);
 
   return (
     <>
@@ -35,6 +36,31 @@ export default async function Home() {
             </div>
           </div>
         </section>
+
+        {aeration && (
+          <div className="section-alt">
+            <div className="wrap">
+              <section className="section service-detail" id="aeration">
+                <div className="section-head">
+                  <div>
+                    <div className="eyebrow">{c.aerationEyebrow}</div>
+                    <h2>{c.aerationHeading}</h2>
+                  </div>
+                  <p>{c.aerationNote}</p>
+                </div>
+                <p className="prose">{aeration.body}</p>
+                {aeration.highlights?.length > 0 && (
+                  <ul>
+                    {aeration.highlights.map((h) => (
+                      <li key={h}>{h}</li>
+                    ))}
+                  </ul>
+                )}
+                <a className="btn btn-solid" href="/contact">{c.aerationCtaLabel}</a>
+              </section>
+            </div>
+          </div>
+        )}
 
         <div className="wrap">
           <section className="section offers" id="services">
@@ -87,11 +113,11 @@ export default async function Home() {
               </div>
               <p>{c.programsIntro}</p>
             </div>
-            <div className="link-cards cols-2">
+            <div className="link-cards">
               {programs.map((program) => (
                 <a className="link-card" href={`/programs/${program.slug}`} key={program.slug}>
-                  <h3>{program.title}</h3>
-                  <p>{program.body}</p>
+                  <h3>{program.name}</h3>
+                  <p className="subhead">{program.title}</p>
                   <span className="link-card-cta">Learn more →</span>
                 </a>
               ))}

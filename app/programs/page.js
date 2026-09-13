@@ -25,7 +25,7 @@ export default async function ProgramsPage() {
           <section className="section" id="programs">
             <div className="section-head">
               <div>
-                <div className="eyebrow">Enterprise</div>
+                <div className="eyebrow">Programs</div>
                 <h2>Signature Programs</h2>
               </div>
               <p>Structured, trackable programs built for commercial properties.</p>
@@ -34,7 +34,8 @@ export default async function ProgramsPage() {
               {programs.map((program) => (
                 <div className="offer-card" key={program.slug}>
                   <div className="eyebrow">{program.eyebrow}</div>
-                  <h3>{program.title}</h3>
+                  <h3>{program.name}</h3>
+                  <p className="subhead">{program.title}</p>
                   <p>{program.body}</p>
                   {program.highlights?.length > 0 && (
                     <ul>

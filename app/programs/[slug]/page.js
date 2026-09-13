@@ -18,8 +18,8 @@ export async function generateMetadata({ params }) {
   const program = getProgram(slug, programs);
   if (!program) return {};
   return {
-    title: `${program.title} — BeckYards`,
-    description: program.body,
+    title: `${program.name} — BeckYards`,
+    description: program.title,
   };
 }
 
@@ -40,7 +40,8 @@ export default async function ProgramPage({ params }) {
             <div className="section-head">
               <div>
                 <div className="eyebrow">{program.eyebrow}</div>
-                <h2>{program.title}</h2>
+                <h2>{program.name}</h2>
+                <p className="subhead">{program.title}</p>
               </div>
             </div>
             <p>{program.body}</p>

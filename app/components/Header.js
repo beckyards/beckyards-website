@@ -47,11 +47,10 @@ export default function Header() {
           </div>
           <div className="nav-dropdown">
             <a href="/programs" className="nav-dropdown-trigger">Programs</a>
-            <div className="nav-dropdown-menu">
+            <div className="nav-dropdown-menu nav-dropdown-menu-compact">
               {PROGRAMS.map((program) => (
                 <a href={`/programs/${program.slug}`} key={program.slug}>
-                  <b>{program.title}</b>
-                  <span>{program.eyebrow}</span>
+                  <b>{program.name}</b>
                 </a>
               ))}
             </div>
@@ -89,7 +88,7 @@ export default function Header() {
             <a href="/programs" className="mobile-menu-heading" onClick={closeMobile}>Programs</a>
             {PROGRAMS.map((program) => (
               <a href={`/programs/${program.slug}`} key={program.slug} className="mobile-submenu-link" onClick={closeMobile}>
-                {program.title}
+                {program.name}
               </a>
             ))}
           </div>

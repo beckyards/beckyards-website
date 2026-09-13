@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Editable from '../Editable';
 import Header from '../../components/Header';
-import { SERVICES } from '../../../lib/services';
+import { SERVICES, getService } from '../../../lib/services';
 import { PROGRAMS } from '../../../lib/programs';
 import {
   HOME_DEFAULT,
@@ -71,6 +71,7 @@ function Bar({ label }) {
 }
 
 function HomeView({ c, set: setC }) {
+  const aeration = getService('aeration-overseeding');
   return (
     <>
       <Bar label="Homepage" />
@@ -91,6 +92,31 @@ function HomeView({ c, set: setC }) {
             </div>
           </div>
         </section>
+
+        {aeration && (
+          <div className="section-alt">
+            <div className="wrap">
+              <section className="section service-detail" id="aeration">
+                <div className="section-head">
+                  <div>
+                    <Editable as="div" className="eyebrow" value={c.aerationEyebrow} onCommit={(v) => setC(set(c, 'aerationEyebrow', v))} />
+                    <h2><Editable value={c.aerationHeading} onCommit={(v) => setC(set(c, 'aerationHeading', v))} /></h2>
+                  </div>
+                  <Editable as="p" value={c.aerationNote} multiline onCommit={(v) => setC(set(c, 'aerationNote', v))} />
+                </div>
+                <p className="prose">{aeration.body}</p>
+                {aeration.highlights?.length > 0 && (
+                  <ul>
+                    {aeration.highlights.map((h) => (
+                      <li key={h}>{h}</li>
+                    ))}
+                  </ul>
+                )}
+                <span className="btn btn-solid"><Editable value={c.aerationCtaLabel} onCommit={(v) => setC(set(c, 'aerationCtaLabel', v))} /></span>
+              </section>
+            </div>
+          </div>
+        )}
 
         <div className="wrap">
           <section className="section offers" id="services">
@@ -141,11 +167,11 @@ function HomeView({ c, set: setC }) {
               </div>
               <Editable as="p" value={c.programsIntro} multiline onCommit={(v) => setC(set(c, 'programsIntro', v))} />
             </div>
-            <div className="link-cards cols-2">
+            <div className="link-cards">
               {PROGRAMS.map((program) => (
                 <span className="link-card" key={program.slug}>
-                  <h3>{program.title}</h3>
-                  <p>{program.body}</p>
+                  <h3>{program.name}</h3>
+                  <p className="subhead">{program.title}</p>
                   <span className="link-card-cta">Learn more →</span>
                 </span>
               ))}

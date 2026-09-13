@@ -468,6 +468,8 @@ header.is-solid{
   margin: 10px 0 0;
   color: rgba(52,42,31,0.88);
 }
+/* A tagline shown right under a program/service name, e.g. "Green+" (h2/h3)
+   followed by "Sustainable Landscaping. Documented Impact." as the subhead. */
 .section-head p{
   color: var(--grey-dim);
   font-size: 14px;
@@ -927,6 +929,19 @@ footer{ padding: 30px 0; border-top: 1px solid var(--line); }
 .footer-links a:hover{ color: var(--ink); }
 .footer-admin{ opacity: 0.5; font-size: 12px; }
 .footer-admin:hover{ opacity: 1; }
+
+/* A tagline shown right under a program/service name, e.g. "Green+" (h2/h3)
+   followed by "Sustainable Landscaping. Documented Impact." as the subhead.
+   Doubled class to out-specificity the various "> p" / descendant rules
+   above (offer-card, link-card, etc.) regardless of source order. */
+.subhead.subhead{
+  font-family:'Archivo', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--grey);
+  margin: 6px 0 18px;
+  max-width: none;
+}
 
 /* ---------- Responsive ---------- */
 
