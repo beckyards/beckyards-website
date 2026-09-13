@@ -195,7 +195,7 @@
   text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
   color: var(--a-faint); padding: 12px 14px; border-bottom: 1px solid var(--a-line); white-space: nowrap;
 }
-.admin-table td { padding: 10px 14px; border-bottom: 1px solid var(--a-line-soft); vertical-align: middle; }
+.admin-table td { padding: 10px 14px; border-bottom: 1px solid var(--a-line-soft); vertical-align: middle; white-space: nowrap; }
 .admin-table tr:last-child td { border-bottom: 0; }
 .admin-table-link { color: var(--a-accent); }
 .admin-table-link:hover { text-decoration: underline; }
@@ -205,6 +205,13 @@
   background: var(--a-panel-2); color: var(--a-text);
 }
 .admin-price-field input:focus { outline: 2px solid var(--a-accent); outline-offset: 1px; border-color: transparent; }
+.admin-reorder { display: flex; gap: 3px; }
+.admin-reorder .admin-mini { padding: 3px 7px; line-height: 1; }
+.admin-table tr.is-completed { opacity: 0.55; }
+.admin-table tr.is-completed td:not(:first-child):not(:nth-child(2)) { text-decoration: line-through; text-decoration-color: var(--a-faint); }
+.admin-table tfoot td { padding: 12px 14px; border-top: 2px solid var(--a-line); font-weight: 700; }
+.admin-table-total-label { text-align: right; color: var(--a-dim); font-weight: 600; }
+.admin-table-total-value { color: var(--a-text); font-size: 15px; }
 
 /* ---------- Messages ---------- */
 .msg-list { display: flex; flex-direction: column; }
