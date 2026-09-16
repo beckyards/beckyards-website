@@ -2,7 +2,7 @@
 
 Living status doc for the BeckYards Landscaping & Design website.
 
-_Last updated: 2026-09-15 (even later)_
+_Last updated: 2026-09-15 (yet again)_
 
 ---
 
@@ -68,6 +68,14 @@ This was a deliberate, explicit decision by the user after the very first versio
 ## Task log
 
 Newest first.
+
+### 2026-09-15 (yet again) — HEIC upload fix actually didn't work in production — found the real cause
+
+- **Asked:** "for some reason i still cant get photos from my phohone onto the phtos section" — the heic-convert fix from the previous entry was live, but phone uploads were still failing.
+- **Root cause:** `heic-convert` → `heic-decode` → `libheif-js` loads a `libheif.wasm` binary (1.4 MB) at runtime via a `__dirname`-relative path built dynamically inside a minified Emscripten bundle — not a statically analyzable `require()`/import. Next.js's serverless file tracing (which decides exactly what files Vercel bundles into each API route's deployed function) can only follow static references, so it silently excluded `libheif.wasm` from both `/api/admin/media` and `/api/admin/enhance`'s deployed functions. This meant every HEIC conversion attempt failed in production with a file-not-found error, while working perfectly in local dev (where the full `node_modules` tree sits on disk regardless of tracing). Confirmed by inspecting `.next/server/app/api/admin/media/route.js.nft.json` after a production build — zero heic/wasm-related files were listed.
+- **Fixed** by adding `outputFileTracingIncludes` in `next.config.js`, forcing `./node_modules/libheif-js/libheif-wasm/*.wasm` into the trace for both routes. Rebuilt and confirmed the `.wasm` file now appears in both routes' `.nft.json` trace output.
+- **Lesson for future sessions:** any Vercel serverless route that transitively depends on a package loading a binary/WASM asset via a dynamic path (rather than a static `require('./file.wasm')`) needs an explicit `outputFileTracingIncludes` entry, or it will work in local dev and fail silently in production — a gap that's easy to miss since `npm run build` succeeds either way and only Vercel's actual deployed function is affected.
+- **Not yet verified against a real iPhone HEIC photo** — no real HEIC sample was available to test with locally, and this class of bug only manifests once actually deployed. Needs the user to try a real phone upload on the live site after this deploys.
 
 ### 2026-09-15 (even later) — Fix contact-form notify email default
 
