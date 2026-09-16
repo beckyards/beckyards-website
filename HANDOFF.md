@@ -2,7 +2,7 @@
 
 Living status doc for the BeckYards Landscaping & Design website.
 
-_Last updated: 2026-09-15 (later)_
+_Last updated: 2026-09-15 (even later)_
 
 ---
 
@@ -58,7 +58,7 @@ This was a deliberate, explicit decision by the user after the very first versio
 ## Outstanding / next steps
 
 - [ ] **Set up Resend properly for the Messages reply feature.** `RESEND_API_KEY` doesn't appear to be set anywhere in this project's local env (`.env.local` has no key), so it's unconfirmed whether it's set in Vercel either — if not, replying from Messages will show a clear "email sending isn't set up" error rather than fail silently. Separately, even with a key, Resend's sandbox sender (`onboarding@resend.dev`) can only deliver to the Resend account's own verified email, not to an arbitrary customer's inbox — a real `beckyards.com` sending domain needs to be verified in Resend (Domains → Add Domain, then add the DNS records it gives you) before replies can actually reach customers. Once verified, set `RESEND_FROM_EMAIL` in Vercel (e.g. `BeckYards <hello@beckyards.com>`) to use it.
-- [ ] **Check the contact-form notify email.** `app/api/contact/route.js` defaults `NOTIFY_EMAIL` to `oskelo.co@gmail.com` (the Oskelo business's email) if the env var isn't set — this looks like a leftover copy-paste from when this codebase was ported from Oskelo's, and given the two businesses are meant to stay completely separate, it's worth confirming `NOTIFY_EMAIL` is actually set correctly in Vercel (or changing the code default to `thebeckyards@gmail.com`, matching `ADMIN_EMAIL`).
+- [x] **Contact-form notify email default fixed.** `app/api/contact/route.js` defaulted `NOTIFY_EMAIL` to `oskelo.co@gmail.com` (the Oskelo business's email) if the env var wasn't set — a leftover copy-paste from when this codebase was ported from Oskelo's. Changed the default to `thebeckyards@gmail.com`, matching `ADMIN_EMAIL`. Still worth double-checking `NOTIFY_EMAIL` isn't explicitly set to something else in Vercel.
 - [ ] **Decide on the full domain registrar transfer** (Shopify → Cloudflare Registrar) for complete independence from Shopify — optional, not urgent, takes 5–7 days (unlock domain, get auth code, ICANN confirmation emails). DNS is already fully on Cloudflare; only the registrar/ownership record is still with Shopify. Not required for the site to work — only relevant if the user wants to fully close the Shopify account someday.
 - [ ] **Decide what to do with the Shopify subscription** now that the new site is live on the real domain (cancel just the store plan, keep domain billing there, etc. — user's call). **Do not fully delete the Shopify account** until domain registration is either kept paid there or transferred elsewhere.
 - [ ] **Delete the orphaned empty Supabase project** under the Oskelo org (`cidhpivtuloosndxvire`) — needs the Supabase connector switched back to the Oskelo account first.
@@ -68,6 +68,11 @@ This was a deliberate, explicit decision by the user after the very first versio
 ## Task log
 
 Newest first.
+
+### 2026-09-15 (even later) — Fix contact-form notify email default
+
+- **Asked:** fix the `oskelo.co@gmail.com` default flagged in the previous entry.
+- Changed `NOTIFY_EMAIL`'s fallback in `app/api/contact/route.js` from `oskelo.co@gmail.com` to `thebeckyards@gmail.com`. One-line fix, committed and pushed.
 
 ### 2026-09-15 (later) — HEIC upload fix, Enhance, Before/After, Messages reply
 

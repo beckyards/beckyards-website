@@ -5,7 +5,7 @@ import { supabase } from '../../../lib/supabaseClient';
 // Where new quote requests are emailed. Resend's zero-setup sender
 // (onboarding@resend.dev) only delivers to the Resend account's own email —
 // switch to a beckyards.com address once that domain is verified in Resend.
-const NOTIFY_EMAIL = process.env.NOTIFY_EMAIL || 'oskelo.co@gmail.com';
+const NOTIFY_EMAIL = process.env.NOTIFY_EMAIL || 'thebeckyards@gmail.com';
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 export async function POST(request) {
