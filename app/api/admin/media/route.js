@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import heicConvert from 'heic-convert';
 import { requireAdminClient } from '../../../../lib/adminAuth';
 import {
   MEDIA_BUCKET as BUCKET,
@@ -6,6 +7,7 @@ import {
   MEDIA_ALLOWED_TYPES as ALLOWED,
   baseNameFrom,
   extFrom,
+  isHeicFile,
   isSafeObjectName,
   uploadToMedia,
 } from '../../../../lib/mediaUpload';
@@ -59,25 +61,35 @@ export async function POST(request) {
       errors.push(`${file.name}: larger than 25 MB.`);
       continue;
     }
-    if (file.type && !ALLOWED.includes(file.type)) {
+
+    // iPhones upload photos as HEIC by default. Some mobile browsers report
+    // an empty file.type for it, so this can't allowlist-check by MIME type
+    // alone — it's checked here (before the allowlist) so a real HEIC photo
+    // gets converted below instead of rejected as "not an allowed type".
+    const heic = isHeicFile(file.name, file.type);
+    if (!heic && file.type && !ALLOWED.includes(file.type)) {
       errors.push(`${file.name}: ${file.type} is not an allowed image type.`);
       continue;
     }
 
     try {
-      const buffer = Buffer.from(await file.arrayBuffer());
-      const base = baseNameFrom(file.name || 'image.jpg');
-      const ext = extFrom(file.name || 'image.jpg');
-      const { name, url } = await uploadToMedia(
-        supabase,
-        buffer,
-        base,
-        ext,
-        file.type || 'application/octet-stream'
-      );
-      uploaded.push({ name, url });
+      let buffer = Buffer.from(await file.arrayBuffer());
+      let contentType = file.type || 'application/octet-stream';
+      let name = file.name || 'image.jpg';
+
+      if (heic) {
+        buffer = Buffer.from(await heicConvert({ buffer, format: 'JPEG', quality: 0.92 }));
+        contentType = 'image/jpeg';
+        name = name.replace(/\.(heic|heif)$/i, '.jpg');
+      }
+
+      const base = baseNameFrom(name);
+      const ext = extFrom(name);
+      const uploadResult = await uploadToMedia(supabase, buffer, base, ext, contentType);
+      uploaded.push(uploadResult);
     } catch (error) {
-      errors.push(`${file.name}: ${error.message}`);
+      const prefix = heic ? 'Could not convert this iPhone photo — ' : '';
+      errors.push(`${file.name}: ${prefix}${error.message}`);
     }
   }
 

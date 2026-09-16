@@ -33,6 +33,18 @@ const I = {
       <path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z" />
     </svg>
   ),
+  enhance: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1" />
+      <circle cx="12" cy="12" r="3.2" />
+    </svg>
+  ),
+  compare: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3v18" /><path d="M5 7H3v10h2" /><path d="M19 7h2v10h-2" />
+      <path d="M9 9H5V5" /><path d="M15 15h4v4" />
+    </svg>
+  ),
   aeration: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" />
@@ -59,6 +71,8 @@ const LINKS = [
   { href: '/admin/mowing-route', label: 'Clients', icon: I.mowing },
   { href: '/admin/route-run', label: 'Route', icon: I.route },
   { href: '/admin/images', label: 'Images', icon: I.images },
+  { href: '/admin/enhance', label: 'Enhance', icon: I.enhance },
+  { href: '/admin/compare', label: 'Before/After', icon: I.compare },
   { href: '/admin/content', label: 'Content', icon: I.content },
 ];
 

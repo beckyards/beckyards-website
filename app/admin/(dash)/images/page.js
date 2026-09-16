@@ -207,7 +207,7 @@ export default function ImagesPage() {
           onChange={(e) => upload(e.target.files)}
         />
         <p>{status === 'uploading' ? 'Uploading…' : 'Drop images here, or click to choose'}</p>
-        <span>JPG, PNG, WebP, GIF or AVIF · up to 25 MB each</span>
+        <span>JPG, PNG, WebP, GIF, AVIF or iPhone (HEIC) photos · up to 25 MB each</span>
       </div>
 
       {message && <p className="admin-json-ok">{message}</p>}

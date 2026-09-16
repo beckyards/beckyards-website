@@ -21,6 +21,10 @@ export default function MessagesView() {
   const [items, setItems] = useState(null);
   const [error, setError] = useState('');
   const [busyId, setBusyId] = useState(null);
+  const [openReplyId, setOpenReplyId] = useState(null);
+  const [drafts, setDrafts] = useState({});
+  const [sendingId, setSendingId] = useState(null);
+  const [sendError, setSendError] = useState({});
 
   const load = useCallback((f) => {
     setItems(null);
@@ -63,6 +67,36 @@ export default function MessagesView() {
       );
     } finally {
       setBusyId(null);
+    }
+  }
+
+  async function sendReply(id) {
+    const text = (drafts[id] || '').trim();
+    if (!text) return;
+    setSendingId(id);
+    setSendError((prev) => ({ ...prev, [id]: '' }));
+    try {
+      const res = await fetch('/api/admin/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, body: text }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setSendError((prev) => ({ ...prev, [id]: d.error || 'Could not send the reply.' }));
+        return;
+      }
+      setItems((prev) =>
+        prev.map((m) =>
+          m.id === id
+            ? { ...m, read_at: m.read_at || new Date().toISOString(), message_replies: [...(m.message_replies || []), d.reply] }
+            : m
+        )
+      );
+      setDrafts((prev) => ({ ...prev, [id]: '' }));
+      setOpenReplyId(null);
+    } finally {
+      setSendingId(null);
     }
   }
 
@@ -130,12 +164,54 @@ export default function MessagesView() {
               </div>
               {m.address && <p className="msg-body" style={{ color: 'var(--a-dim)', fontSize: 13 }}>{m.address}</p>}
               <p className="msg-body">{m.message}</p>
+
+              {m.message_replies?.length > 0 && (
+                <div className="msg-replies">
+                  {m.message_replies.map((r) => (
+                    <div key={r.id} className="msg-reply">
+                      <span className="msg-reply-meta">You replied · {fullDate(r.sent_at)}</span>
+                      <p className="msg-body">{r.body}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {openReplyId === m.id && (
+                <div className="msg-reply-composer">
+                  <textarea
+                    rows={4}
+                    placeholder={`Reply to ${m.name}…`}
+                    value={drafts[m.id] || ''}
+                    onChange={(e) => setDrafts((prev) => ({ ...prev, [m.id]: e.target.value }))}
+                    disabled={sendingId === m.id}
+                  />
+                  {sendError[m.id] && <p className="admin-json-error">{sendError[m.id]}</p>}
+                  <div className="msg-actions">
+                    <button
+                      className="admin-mini admin-mini-primary"
+                      disabled={sendingId === m.id || !(drafts[m.id] || '').trim()}
+                      onClick={() => sendReply(m.id)}
+                    >
+                      {sendingId === m.id ? 'Sending…' : 'Send reply'}
+                    </button>
+                    <button className="admin-mini" disabled={sendingId === m.id} onClick={() => setOpenReplyId(null)}>
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <div className="msg-actions">
+                {openReplyId !== m.id && (
+                  <button className="admin-mini" onClick={() => setOpenReplyId(m.id)}>
+                    Reply
+                  </button>
+                )}
                 <a
                   className="admin-mini"
                   href={`mailto:${m.email}?subject=${encodeURIComponent('Re: your BeckYards quote request')}`}
                 >
-                  Reply
+                  Open in email app
                 </a>
                 {m.read_at ? (
                   <button className="admin-mini" disabled={busyId === m.id} onClick={() => act(m.id, 'unread')}>

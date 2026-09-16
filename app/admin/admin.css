@@ -259,6 +259,18 @@
 .msg-body { margin: 8px 0 0; color: var(--a-text); white-space: pre-wrap; font-size: 13.5px; }
 .msg-body.clamp { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .msg-actions { display: flex; gap: 7px; margin-top: 11px; flex-wrap: wrap; }
+.msg-replies { margin-top: 10px; padding-left: 12px; border-left: 2px solid var(--a-line); }
+.msg-reply { margin-top: 8px; }
+.msg-reply:first-child { margin-top: 0; }
+.msg-reply-meta { font-size: 11.5px; color: var(--a-faint); }
+.msg-reply-composer { margin-top: 11px; display: flex; flex-direction: column; gap: 7px; }
+.msg-reply-composer textarea {
+  padding: 8px 10px; border: 1px solid var(--a-line); border-radius: 8px;
+  font: inherit; font-size: 13.5px; background: var(--a-panel-2); resize: vertical;
+}
+.msg-reply-composer textarea:focus { outline: 2px solid var(--a-accent); outline-offset: 1px; border-color: transparent; }
+.admin-mini-primary { background: var(--a-accent); color: #fff; border-color: var(--a-accent); }
+.admin-mini-primary:hover { background: var(--a-accent); opacity: 0.9; }
 
 /* ---------- Buttons ---------- */
 .admin-mini {
