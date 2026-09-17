@@ -155,6 +155,52 @@ export default function ImagesPage() {
     );
   }
 
+  async function addSelectedToPortfolio() {
+    const names = Array.from(selected);
+    if (names.length === 0) return;
+    setMessage('');
+
+    const urls = names
+      .map((name) => items.find((i) => i.name === name)?.url)
+      .filter(Boolean);
+
+    const res = await fetch('/api/admin/content?key=portfolio');
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      setMessage(data.error || 'Could not load Portfolio.');
+      return;
+    }
+
+    const current = Array.isArray(data.value) ? data.value : [];
+    const existingSrcs = new Set(current.map((p) => p.src));
+    const additions = urls
+      .filter((url) => !existingSrcs.has(url))
+      .map((url) => ({ src: url, alt: '' }));
+    const skipped = urls.length - additions.length;
+
+    if (additions.length === 0) {
+      setMessage('Already in Portfolio — nothing new to add.');
+      return;
+    }
+
+    const putRes = await fetch('/api/admin/content', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: 'portfolio', value: [...current, ...additions] }),
+    });
+    const putData = await putRes.json().catch(() => ({}));
+    if (!putRes.ok) {
+      setMessage(putData.error || 'Could not add to Portfolio.');
+      return;
+    }
+
+    setSelected(new Set());
+    setMessage(
+      `Added ${additions.length} photo${additions.length === 1 ? '' : 's'} to Portfolio.` +
+        (skipped > 0 ? ` (${skipped} already there.)` : '')
+    );
+  }
+
   async function copyUrl(url, name) {
     try {
       await navigator.clipboard.writeText(url);
@@ -177,7 +223,8 @@ export default function ImagesPage() {
       <p className="admin-lead">
         Upload photos here, then use “Copy URL” — or the “Pick” buttons on the
         Content page — to place them on the site. Click any name to rename it
-        to something you'll recognize later.
+        to something you'll recognize later. To add photos to the Portfolio
+        page, click “Select”, choose the photos, then “Add to Portfolio”.
       </p>
 
       <div
@@ -241,6 +288,14 @@ export default function ImagesPage() {
             onClick={() => setSelected(new Set(filtered.map((i) => i.name)))}
           >
             Select all {filtered.length !== items.length ? `(${filtered.length} shown)` : ''}
+          </button>
+          <button
+            type="button"
+            className="admin-mini admin-mini-primary"
+            disabled={selected.size === 0}
+            onClick={addSelectedToPortfolio}
+          >
+            Add to Portfolio
           </button>
           <button
             type="button"

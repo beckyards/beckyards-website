@@ -1,5 +1,6 @@
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import PortfolioGallery from './PortfolioGallery';
 import { getContent } from '../../lib/siteContent';
 import { PORTFOLIO_DEFAULT } from '../../lib/pageContent';
 
@@ -29,13 +30,7 @@ export default async function PortfolioPage() {
               <p>A look at some of our recent lawn care and landscaping projects.</p>
             </div>
             {photos.length > 0 ? (
-              <div className="photo-grid">
-                {photos.map((photo, i) => (
-                  <div className="photo-grid-item" key={photo.src || i}>
-                    <img src={photo.src} alt={photo.alt || ''} loading="lazy" />
-                  </div>
-                ))}
-              </div>
+              <PortfolioGallery photos={photos} />
             ) : (
               <p className="photo-grid-empty">Photos coming soon — check back after our next project.</p>
             )}
