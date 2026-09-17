@@ -7,18 +7,20 @@ import VisualEditor from '../_components/VisualEditor';
 
 const SECTIONS = [
   { key: 'home', label: 'Homepage' },
+  { key: 'about', label: 'About page' },
   { key: 'contact', label: 'Contact page' },
   { key: 'terms', label: 'Terms page' },
   { key: 'promoBar', label: 'Top promo bar' },
   { key: 'footer', label: 'Footer' },
   { key: 'services', label: 'Services' },
   { key: 'programs', label: 'Programs' },
+  { key: 'portfolio', label: 'Portfolio' },
 ];
 
 // Sections with a matching /preview/[key] template — see app/preview/[key]/page.js.
-// Services/Programs are lists of cards, not page copy, so they stay on the
-// Form + Raw JSON pair only.
-const VISUAL_KEYS = new Set(['home', 'contact', 'terms', 'promoBar', 'footer']);
+// Services/Programs/Portfolio are lists of cards/photos, not page copy, so
+// they stay on the Form + Raw JSON pair only.
+const VISUAL_KEYS = new Set(['home', 'about', 'contact', 'terms', 'promoBar', 'footer']);
 
 export default function ContentPage() {
   const [section, setSection] = useState('home');

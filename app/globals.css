@@ -302,9 +302,9 @@ header.is-solid{
 
 .hero-content h1{
   font-family:'Archivo', sans-serif;
-  font-weight: 800;
-  font-size: clamp(40px, 5vw, 62px);
-  line-height: 1.04;
+  font-weight: 600;
+  font-size: clamp(28px, 3vw, 38px);
+  line-height: 1.08;
   letter-spacing: -0.01em;
   text-transform: uppercase;
   margin: 0 0 26px;

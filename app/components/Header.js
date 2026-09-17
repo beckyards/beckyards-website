@@ -55,6 +55,8 @@ export default function Header() {
               ))}
             </div>
           </div>
+          <a href="/about">About</a>
+          <a href="/portfolio">Portfolio</a>
           <div className="nav-dropdown nav-dropdown-right">
             <a href="/contact" className="nav-dropdown-trigger">Contact</a>
             <div className="nav-dropdown-menu nav-dropdown-menu-compact">
@@ -97,6 +99,12 @@ export default function Header() {
                 {program.name}
               </a>
             ))}
+          </div>
+          <div className="mobile-menu-group">
+            <a href="/about" className="mobile-menu-heading" onClick={closeMobile}>About</a>
+          </div>
+          <div className="mobile-menu-group">
+            <a href="/portfolio" className="mobile-menu-heading" onClick={closeMobile}>Portfolio</a>
           </div>
           <div className="mobile-menu-group">
             <a href="/contact" className="mobile-menu-heading" onClick={closeMobile}>Contact</a>

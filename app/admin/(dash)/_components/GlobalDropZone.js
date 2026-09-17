@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { uploadFilesToMedia } from '../../../../lib/mediaUploadClient';
 
 // Drop an image anywhere in the admin area — not just on /admin/images' own
 // drop zone — and it uploads straight to the media library, with the same
@@ -43,11 +44,8 @@ export default function GlobalDropZone({ children }) {
 
       setToast({ status: 'uploading', message: `Uploading ${files.length} image${files.length === 1 ? '' : 's'}…` });
       try {
-        const form = new FormData();
-        files.forEach((f) => form.append('files', f));
-        const res = await fetch('/api/admin/media', { method: 'POST', body: form });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok && !(data.uploaded?.length)) throw new Error(data.error || 'Upload failed.');
+        const data = await uploadFilesToMedia(files);
+        if (data.error && !data.uploaded?.length) throw new Error(data.error);
         setToast({ status: 'done', uploaded: data.uploaded || [], errors: data.errors || [] });
       } catch (err) {
         setToast({ status: 'error', message: err.message });

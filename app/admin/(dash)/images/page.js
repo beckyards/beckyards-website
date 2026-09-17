@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Lightbox from '../_components/Lightbox';
+import { uploadFilesToMedia } from '../../../../lib/mediaUploadClient';
 
 function baseName(name) {
   const dot = name.lastIndexOf('.');
@@ -50,16 +51,12 @@ export default function ImagesPage() {
     setStatus('uploading');
     setMessage('');
 
-    const form = new FormData();
-    files.forEach((f) => form.append('files', f));
+    const data = await uploadFilesToMedia(files);
 
-    const res = await fetch('/api/admin/media', { method: 'POST', body: form });
-    const data = await res.json().catch(() => ({}));
-
-    if (data.errors?.length) {
-      setMessage(
-        `${data.uploaded?.length || 0} uploaded. Problems: ${data.errors.join(' ')}`
-      );
+    if (data.error) {
+      setMessage(data.error);
+    } else if (data.errors?.length) {
+      setMessage(`${data.uploaded?.length || 0} uploaded. Problems: ${data.errors.join(' ')}`);
     } else {
       setMessage(
         `${data.uploaded?.length || 0} image(s) uploaded — click a name below to rename it to something you'll recognize.`

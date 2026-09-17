@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react';
 import ImagePickerModal from './ImagePickerModal';
+import { uploadFilesToMedia } from '../../../../lib/mediaUploadClient';
 
 const IMAGE_KEYS = new Set(['src', 'image', 'cover', 'poster', 'thumb', 'thumbnail']);
 
@@ -36,10 +37,7 @@ function setAt(root, path, value) {
 // {name, url} per file — same auto-naming every other upload path uses, so a
 // photo dragged straight onto a field shows up in Images immediately too.
 async function uploadFiles(files) {
-  const form = new FormData();
-  files.forEach((f) => form.append('files', f));
-  const res = await fetch('/api/admin/media', { method: 'POST', body: form });
-  const data = await res.json().catch(() => ({}));
+  const data = await uploadFilesToMedia(files);
   if (!data.uploaded?.length) {
     throw new Error(data.error || data.errors?.[0] || 'Upload failed.');
   }
@@ -538,7 +536,11 @@ export default function StructuredEditor({ value, onChange }) {
         type="button"
         className="admin-mini"
         onClick={() =>
-          onChange([...value, value.length ? blankLike(value[0]) : {}])
+          // With no existing entry to infer a shape from, default to a
+          // gallery-style {src, alt} entry — the ImageField/Pick UI below
+          // only appears for a recognized key like "src", so a bare {}
+          // would render with nothing to fill in.
+          onChange([...value, value.length ? blankLike(value[0]) : { src: '', alt: '' }])
         }
       >
         + Add entry

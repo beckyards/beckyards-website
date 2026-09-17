@@ -8,6 +8,7 @@ import { SERVICES, getService } from '../../../lib/services';
 import { PROGRAMS } from '../../../lib/programs';
 import {
   HOME_DEFAULT,
+  ABOUT_DEFAULT,
   CONTACT_PAGE_DEFAULT,
   PROMO_BAR_DEFAULT,
   FOOTER_DEFAULT,
@@ -17,6 +18,7 @@ import '../preview.css';
 
 const DEFAULTS = {
   home: HOME_DEFAULT,
+  about: ABOUT_DEFAULT,
   contact: CONTACT_PAGE_DEFAULT,
   promoBar: PROMO_BAR_DEFAULT,
   footer: FOOTER_DEFAULT,
@@ -183,6 +185,29 @@ function HomeView({ c, set: setC }) {
   );
 }
 
+function AboutView({ c, set: setC }) {
+  return (
+    <>
+      <Bar label="About page" />
+      <Header />
+      <main>
+        <div className="wrap">
+          <section className="section" id="about">
+            <div className="section-head">
+              <div>
+                <Editable as="div" className="eyebrow" value={c.eyebrow} onCommit={(v) => setC(set(c, 'eyebrow', v))} />
+                <h2><Editable value={c.heading} onCommit={(v) => setC(set(c, 'heading', v))} /></h2>
+              </div>
+              <Editable as="p" value={c.intro} multiline onCommit={(v) => setC(set(c, 'intro', v))} />
+            </div>
+            <Editable as="p" className="prose" value={c.body} multiline onCommit={(v) => setC(set(c, 'body', v))} />
+          </section>
+        </div>
+      </main>
+    </>
+  );
+}
+
 function ContactView({ c, set: setC }) {
   return (
     <>
@@ -287,6 +312,7 @@ function FooterView({ c, set: setC }) {
 
 const VIEWS = {
   home: HomeView,
+  about: AboutView,
   contact: ContactView,
   terms: TermsView,
   promoBar: PromoBarView,

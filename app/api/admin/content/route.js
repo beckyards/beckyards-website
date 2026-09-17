@@ -5,20 +5,24 @@ import { SERVICES } from '../../../../lib/services';
 import { PROGRAMS } from '../../../../lib/programs';
 import {
   HOME_DEFAULT,
+  ABOUT_DEFAULT,
   CONTACT_PAGE_DEFAULT,
   PROMO_BAR_DEFAULT,
   FOOTER_DEFAULT,
   TERMS_DEFAULT,
+  PORTFOLIO_DEFAULT,
 } from '../../../../lib/pageContent';
 
 const DEFAULTS = {
   services: SERVICES,
   programs: PROGRAMS,
   home: HOME_DEFAULT,
+  about: ABOUT_DEFAULT,
   contact: CONTACT_PAGE_DEFAULT,
   promoBar: PROMO_BAR_DEFAULT,
   footer: FOOTER_DEFAULT,
   terms: TERMS_DEFAULT,
+  portfolio: PORTFOLIO_DEFAULT,
 };
 
 // work/services/offers/terms.sections are lists; everything else here is one

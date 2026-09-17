@@ -37,28 +37,42 @@ export async function GET() {
   return NextResponse.json({ items });
 }
 
+const TMP_BUCKET = 'enhance-tmp';
+
+// The original photo travels as a JSON reference to a file already sitting in
+// the `enhance-tmp` scratch bucket, not as a multipart upload — see
+// /api/admin/media/upload-url for why: Vercel's Node serverless functions cap
+// an incoming request body around 4.5 MB, which a real phone photo exceeds
+// easily, so the browser uploads the raw file straight to Supabase first
+// (using a signed URL from that route) and this route just downloads it
+// server-side (no such limit there) before validating/converting it into the
+// public `media` bucket.
 export async function POST(request) {
   const { client: supabase, error: authError } = await requireAdminClient();
   if (authError) return authError;
 
-  let form;
+  let body;
   try {
-    form = await request.formData();
+    body = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Expected multipart/form-data.' }, { status: 400 });
+    return NextResponse.json({ error: 'Body must be JSON.' }, { status: 400 });
   }
 
-  const files = form.getAll('files').filter((f) => typeof f === 'object' && f.size >= 0);
+  const files = Array.isArray(body?.files) ? body.files : [];
   if (files.length === 0) {
-    return NextResponse.json({ error: 'No files provided.' }, { status: 400 });
+    return NextResponse.json({ error: 'No files provided.', uploaded: [], errors: [] }, { status: 400 });
   }
 
   const uploaded = [];
   const errors = [];
 
   for (const file of files) {
-    if (file.size > MAX_BYTES) {
-      errors.push(`${file.name}: larger than 25 MB.`);
+    const tmpPath = file?.tmpPath;
+    const name = file?.name || 'image.jpg';
+    const type = file?.type || '';
+
+    if (!tmpPath || typeof tmpPath !== 'string') {
+      errors.push(`${name}: missing uploaded file reference.`);
       continue;
     }
 
@@ -66,30 +80,42 @@ export async function POST(request) {
     // an empty file.type for it, so this can't allowlist-check by MIME type
     // alone — it's checked here (before the allowlist) so a real HEIC photo
     // gets converted below instead of rejected as "not an allowed type".
-    const heic = isHeicFile(file.name, file.type);
-    if (!heic && file.type && !ALLOWED.includes(file.type)) {
-      errors.push(`${file.name}: ${file.type} is not an allowed image type.`);
+    const heic = isHeicFile(name, type);
+    if (!heic && type && !ALLOWED.includes(type)) {
+      errors.push(`${name}: ${type} is not an allowed image type.`);
       continue;
     }
 
     try {
-      let buffer = Buffer.from(await file.arrayBuffer());
-      let contentType = file.type || 'application/octet-stream';
-      let name = file.name || 'image.jpg';
+      const { data: fileData, error: downloadError } = await supabase.storage.from(TMP_BUCKET).download(tmpPath);
+      if (downloadError) {
+        errors.push(`${name}: couldn't read the uploaded file — it may have expired. Try again.`);
+        continue;
+      }
+      let buffer = Buffer.from(await fileData.arrayBuffer());
+
+      if (buffer.length > MAX_BYTES) {
+        errors.push(`${name}: larger than 25 MB.`);
+        continue;
+      }
+
+      let contentType = type || 'application/octet-stream';
+      let outName = name;
 
       if (heic) {
         buffer = Buffer.from(await heicConvert({ buffer, format: 'JPEG', quality: 0.92 }));
         contentType = 'image/jpeg';
-        name = name.replace(/\.(heic|heif)$/i, '.jpg');
+        outName = outName.replace(/\.(heic|heif)$/i, '.jpg');
       }
 
-      const base = baseNameFrom(name);
-      const ext = extFrom(name);
+      const base = baseNameFrom(outName);
+      const ext = extFrom(outName);
       const uploadResult = await uploadToMedia(supabase, buffer, base, ext, contentType);
       uploaded.push(uploadResult);
+      supabase.storage.from(TMP_BUCKET).remove([tmpPath]).catch(() => {});
     } catch (error) {
       const prefix = heic ? 'Could not convert this iPhone photo — ' : '';
-      errors.push(`${file.name}: ${prefix}${error.message}`);
+      errors.push(`${name}: ${prefix}${error.message}`);
     }
   }
 
