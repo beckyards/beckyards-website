@@ -1,5 +1,8 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { NextResponse } from 'next/server';
 import sharp from 'sharp';
+import * as opentype from 'opentype.js';
 import { requireAdminClient } from '../../../../lib/adminAuth';
 import { baseNameFrom, uploadToMedia } from '../../../../lib/mediaUpload';
 
@@ -20,21 +23,52 @@ function clamp(value, lo, hi) {
   return Math.min(hi, Math.max(lo, value));
 }
 
-function escapeXml(s) {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+// SVG <text> relies on system fonts being installed and discoverable via
+// fontconfig — Vercel's serverless functions ship none, so labels rendered
+// that way came out as tofu squares in production (this worked fine in local
+// dev, which has real fonts, which is exactly why it slipped through).
+// Converting the label to vector glyph outlines up front sidesteps font
+// rendering at composite time entirely: sharp/librsvg just draws shapes.
+const LABEL_FONT = opentype.parse(
+  (() => {
+    const buf = fs.readFileSync(path.join(process.cwd(), 'lib/fonts/Archivo-Bold.woff'));
+    return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+  })()
+);
+
+// Lays out one glyph at a time rather than using the font's own shaper —
+// opentype.js's GSUB/ligature support throws on some lookup types present in
+// modern Google Fonts builds. Fine here: labels are short plain-ASCII text
+// with no ligatures to worry about.
+function textPath(text, fontSize) {
+  const scale = fontSize / LABEL_FONT.unitsPerEm;
+  let x = 0;
+  const parts = [];
+  for (const ch of text) {
+    const glyph = LABEL_FONT.charToGlyph(ch);
+    parts.push(glyph.getPath(x, 0, fontSize).toPathData(2));
+    x += glyph.advanceWidth * scale;
+  }
+  return { d: parts.join(' '), width: x };
 }
 
 // A dark pill behind white text, burned into the corner of each half so the
 // label survives being saved as a flat JPEG (no reliance on an <img> caption
 // once it's placed elsewhere on the site).
 function labelSvg(text, halfWidth) {
-  const clean = escapeXml((text || '').slice(0, LABEL_MAX));
+  const clean = (text || '').slice(0, LABEL_MAX);
   const fontSize = 28;
-  const boxWidth = Math.min(halfWidth - 24, clean.length * fontSize * 0.6 + 28);
+  const { d, width: textWidth } = textPath(clean, fontSize);
+  const boxWidth = Math.min(halfWidth - 24, textWidth + 28);
+  const pillY = 14;
+  const pillHeight = 50;
+  const ascent = (LABEL_FONT.ascender / LABEL_FONT.unitsPerEm) * fontSize;
+  const descent = (LABEL_FONT.descender / LABEL_FONT.unitsPerEm) * fontSize;
+  const baselineY = pillY + (pillHeight - (ascent - descent)) / 2 + ascent;
   return Buffer.from(
     `<svg width="${halfWidth}" height="80" xmlns="http://www.w3.org/2000/svg">
-      <rect x="14" y="14" width="${boxWidth}" height="50" rx="8" fill="rgba(0,0,0,0.6)" />
-      <text x="28" y="${14 + 50 / 2 + fontSize * 0.35}" font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="700" fill="#ffffff">${clean}</text>
+      <rect x="14" y="${pillY}" width="${boxWidth}" height="${pillHeight}" rx="8" fill="rgba(0,0,0,0.6)" />
+      <path d="${d}" fill="#ffffff" transform="translate(28, ${baselineY})" />
     </svg>`
   );
 }

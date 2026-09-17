@@ -9,6 +9,12 @@ const nextConfig = {
   outputFileTracingIncludes: {
     '/api/admin/media': ['./node_modules/libheif-js/libheif-wasm/*.wasm'],
     '/api/admin/enhance': ['./node_modules/libheif-js/libheif-wasm/*.wasm'],
+    // Belt-and-suspenders for the same class of bug as above: the bundled
+    // font used to render Before/After labels as vector paths (see
+    // app/api/admin/compare/route.js) is read via fs.readFileSync, which
+    // tracing usually follows fine, but explicitly including it costs
+    // nothing and rules the failure mode out entirely.
+    '/api/admin/compare': ['./lib/fonts/*.woff'],
   },
 };
 
