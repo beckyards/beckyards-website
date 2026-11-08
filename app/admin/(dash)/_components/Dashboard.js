@@ -150,6 +150,10 @@ export default function Dashboard() {
           <h2>Route →</h2>
           <p>Pick Route A or B, check clients off as you mow, and look back at completed routes.</p>
         </a>
+        <a className="admin-card" href="/admin/jobs">
+          <h2>Jobs →</h2>
+          <p>Your to-do list: jobs with a time estimate and priority, with clients pulled straight in.</p>
+        </a>
         <a className="admin-card" href="/admin/images">
           <h2>Images →</h2>
           <p>Upload photos, rename them to something you'll recognize, copy URLs, or delete.</p>

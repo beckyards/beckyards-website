@@ -1,0 +1,179 @@
+/* Services pages (/services and /services/[slug]). Namespaced svc-*. */
+
+/* ---------- Index: editorial rows ---------- */
+
+.svc-row {
+  padding-block: clamp(3rem, 2rem + 4vw, 5.5rem);
+}
+.svc-row-media {
+  display: block;
+  --ratio: 5 / 4;
+}
+.svc-row-media .media-frame {
+  box-shadow: var(--shadow-md);
+}
+.svc-row-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+}
+.svc-num {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(2.75rem, 2rem + 3vw, 4.25rem);
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  color: var(--green);
+}
+.svc-row-title a {
+  color: inherit;
+  text-decoration: none;
+}
+.svc-row-title a:hover {
+  color: var(--accent-text);
+}
+.svc-row-body .check-list {
+  width: 100%;
+  margin-top: 0.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line);
+}
+.svc-row-body .cluster {
+  margin-top: 0.5rem;
+}
+
+/* "Good to know" facts on the dark band */
+.svc-fact {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+}
+.svc-fact h3 {
+  font-size: var(--fs-h4);
+  letter-spacing: 0.03em;
+}
+.svc-fact p {
+  font-size: var(--fs-small);
+  line-height: 1.6;
+  color: var(--grey);
+}
+
+/* ---------- Detail page ---------- */
+
+.svc-hero-badge {
+  margin-bottom: 0.25rem;
+}
+.svc-lead {
+  font-size: var(--fs-lead);
+  line-height: 1.5;
+  font-weight: 500;
+  color: var(--ink);
+  max-width: 40ch;
+}
+.svc-prose {
+  margin-top: 1.5rem;
+}
+.svc-aside .card-title {
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--line);
+}
+.svc-aside .check-list {
+  margin-block: 0.5rem 1rem;
+}
+.svc-aside-actions {
+  display: grid;
+  gap: 0.75rem;
+}
+@media (min-width: 900px) {
+  .svc-aside {
+    position: sticky;
+    top: calc(var(--header-h) + 1.5rem);
+  }
+}
+
+/* 3-photo strip */
+.svc-gallery {
+  display: grid;
+  gap: var(--gap);
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 640px) {
+  .svc-gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+.svc-gallery-item {
+  margin: 0;
+}
+.svc-gallery-item .media-frame {
+  box-shadow: var(--shadow-sm);
+}
+
+/* Other services: compact rows on phones, cards from 640px, five across on wide screens */
+.svc-more {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(0, 1fr);
+}
+.svc-more-card {
+  height: 100%;
+  display: grid;
+  grid-template-columns: 6rem minmax(0, 1fr);
+  align-items: center;
+  gap: 1rem;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: border-color var(--t-med) var(--ease), box-shadow var(--t-med) var(--ease), transform var(--t-med) var(--ease);
+}
+.svc-more-card:hover {
+  border-color: var(--green);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
+}
+.svc-more-thumb {
+  position: relative;
+  align-self: stretch;
+  min-height: 5rem;
+  background: var(--bg-panel);
+  overflow: hidden;
+}
+.svc-more-thumb img {
+  transition: transform var(--t-slow) var(--ease);
+}
+.svc-more-card:hover .svc-more-thumb img {
+  transform: scale(1.05);
+}
+.svc-more-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.75rem 1rem 0.75rem 0;
+}
+.svc-more-title {
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.005em;
+  text-transform: uppercase;
+}
+.svc-more-tag {
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--muted);
+}
+@media (min-width: 640px) {
+  .svc-more { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gap); }
+  .svc-more-card { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr; align-content: start; align-items: start; gap: 0; }
+  .svc-more-thumb { align-self: start; width: 100%; aspect-ratio: 4 / 3; min-height: 0; }
+  .svc-more-text { padding: 1rem 1.1rem 1.25rem; }
+}
+@media (min-width: 1100px) {
+  .svc-more { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}

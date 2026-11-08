@@ -74,6 +74,14 @@ This was a deliberate, explicit decision by the user after the very first versio
 
 Newest first.
 
+### 2026-11-08 — Admin Jobs page + full public-site redesign (built locally, NOT committed/pushed)
+
+- **Asked:** (1) an admin section listing jobs to do with estimated time and priority, pulling client names from Clients; (2) revamp the whole public website to be cleaner, sharper, more appealing and easier to navigate.
+- **Jobs:** new `jobs` table (migration `create_jobs_table`, applied to the live BeckYards Supabase; service-role only like the other admin tables), `lib/jobs.js` helpers, `/api/admin/jobs` (GET/POST/PATCH/DELETE incl. clearDone), `/admin/jobs` page (`JobsView`, `JobsQuickAdd`, `JobsRow`, client typeahead, time presets, priority picker, undo toasts, mobile layout), nav + dashboard links. Built by an API agent + UI agent, then two reviewers and a fixer. **Click-tested live in the signed-in pane**: added a `_verify-` job with a real client, 1 hr, High; it saved with the client's address; the test row was deleted afterwards (jobs table is empty).
+- **Redesign:** new design system (`app/globals.css`, next/font Archivo+Inter, skip link, metadataBase), image infrastructure (`SmartImage`, `lib/imageSize.js`, `lib/media.js` KNOWN_DIMS, `lib/siteImages.js` curated photo map, next/image remotePatterns for the Supabase media bucket — the 6-10 MB originals are now served as optimized avif/webp), `getContent` now shallow-merges object defaults, `app/sitemap.js` + `app/robots.js`, rebuilt header/footer/promo bar/mobile CTA, home (hero photo, photo-card services, aeration band, before/after slider, featured work, why-us, programs, quote form), services, programs, portfolio (optimized masonry + accessible lightbox), about, contact, terms, aeration-signup, plus admin Visual-editor preview templates synced. Three independent reviews (a11y/perf/SEO, truthfulness/editability/regressions, visual coherence) then a fix pass; `NEXT_DIST_DIR` in `next.config.js` lets builds use an isolated folder so `npm run build` no longer clobbers a running dev server.
+- **Checked by hand:** home at 1440px and 375px (no horizontal scroll), portfolio. Live beckyards.com was confirmed untouched (still serving the old build) because nothing was pushed.
+- **State left in:** all uncommitted; dev server on :3001. Needs the owner's approval before commit/push. After deploy, still worth: confirming Vercel's image optimizer handles the large originals, and the admin Visual editor looks right.
+
 ### 2026-09-17 (yet even later) — Fix Before/After labels rendering as tofu squares in production
 
 - **Asked:** "Fix the letters as well please they are coming in as squares on the before and after thing instead of actual words."

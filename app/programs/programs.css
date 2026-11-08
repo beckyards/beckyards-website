@@ -1,0 +1,123 @@
+/* /programs and /programs/[slug]. Class names are namespaced prog-*. */
+
+.prog-plus { color: var(--accent-text); }
+
+/* ---- shared type ---- */
+.prog-name {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 1.5rem + 3.6vw, 4.25rem);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.025em;
+  text-transform: uppercase;
+}
+.prog-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-h3);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.prog-pitch { font-size: var(--fs-lead); line-height: 1.5; color: var(--grey); max-width: 44ch; }
+.prog-body { font-size: var(--fs-body); line-height: 1.72; color: var(--grey); max-width: 62ch; }
+.prog-hero-title { font-weight: 500; }
+
+/* ---- index: enterprise features ---- */
+.prog-list { display: grid; gap: clamp(3rem, 2rem + 5vw, 6rem); }
+
+.prog-feature {
+  display: grid;
+  gap: clamp(1.5rem, 1rem + 2.5vw, 3.5rem);
+  align-items: center;
+}
+.prog-feature__media {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  background: var(--bg-panel);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+}
+.prog-feature__media > img {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform var(--t-slow) var(--ease);
+}
+.prog-feature__media:hover > img { transform: scale(1.03); }
+.prog-feature__tag { position: absolute; top: 1rem; left: 1rem; }
+.prog-feature__body { display: flex; flex-direction: column; align-items: flex-start; gap: 1rem; }
+.prog-feature__body .check-list { margin-top: 0.25rem; }
+.prog-feature__cta { margin-top: 0.75rem; }
+
+@media (min-width: 900px) {
+  .prog-feature { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); }
+  .prog-feature--flip { grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); }
+  .prog-feature--flip .prog-feature__media { order: 2; }
+  .prog-feature__media { aspect-ratio: 5 / 6; }
+}
+
+/* ---- index: Community+ ---- */
+.prog-neighbor__media {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  background: var(--sage-2);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+}
+.prog-neighbor__media > img {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform var(--t-slow) var(--ease);
+}
+.prog-neighbor__media:hover > img { transform: scale(1.03); }
+/* The section h2 is the headline; the program name is a sub-level here and must never outgrow its column. */
+.prog-neighbor__program .prog-name { font-size: clamp(1.875rem, 1.2rem + 2.2vw, 2.75rem); overflow-wrap: anywhere; }
+.prog-neighbor__program {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+}
+.prog-neighbor__cta { margin-top: 1.25rem; }
+
+/* ---- detail ---- */
+.prog-hero-img { object-position: 50% 45%; }
+.prog-detail { align-items: start; }
+.prog-detail__pitch {
+  font-family: var(--font-display);
+  font-size: clamp(1.625rem, 1.1rem + 1.8vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  max-width: 24ch;
+}
+.prog-included { gap: 0.5rem; }
+.prog-included__list { display: grid; margin-top: 0.5rem; }
+.prog-included__list li {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  padding-block: 1rem;
+  border-top: 1px solid var(--line);
+  line-height: 1.45;
+  color: var(--ink);
+}
+.prog-num {
+  flex: none;
+  min-width: 2ch;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--green);
+}
+.prog-more-card { --ratio: 3 / 2; }
+@media (max-width: 639px) {
+  .prog-more-card { --ratio: 4 / 3; }
+}

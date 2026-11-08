@@ -1,0 +1,104 @@
+/* About page. Namespaced ab-* so it can't collide with the design system. */
+
+@media (max-width: 899px) {
+  .ab-hero .page-hero-media::after {
+    background: linear-gradient(180deg, rgba(14, 19, 9, 0.62) 0%, rgba(14, 19, 9, 0.7) 40%, rgba(14, 19, 9, 0.9) 100%);
+  }
+}
+
+/* ---------- Story: portrait photo + readable column ---------- */
+
+.ab-story { align-items: center; }
+.ab-story-media { position: relative; }
+.ab-story-media::before {
+  /* offset sage block behind the photo: depth without a shadow */
+  content: '';
+  position: absolute;
+  inset: 1.25rem -1rem -1rem 1.25rem;
+  background: var(--bg-panel);
+  border-radius: var(--radius-lg);
+  z-index: 0;
+}
+.ab-story-media .media-frame { position: relative; z-index: 1; }
+@media (min-width: 900px) {
+  .ab-story { grid-template-columns: 5fr 6fr; }
+}
+
+.ab-story-copy .prose { max-width: 58ch; }
+.ab-story-copy .prose p:first-child {
+  font-size: 1.25rem;
+  line-height: 1.55;
+  color: var(--ink);
+}
+
+.ab-services { margin-top: clamp(1.75rem, 1rem + 2vw, 2.5rem); padding-top: 1.5rem; border-top: 1px solid var(--line); }
+.ab-services-label {
+  margin-bottom: 0.9rem;
+  font-size: var(--fs-label);
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.ab-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.ab-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.5rem;
+  padding: 0.5rem 0.95rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  transition: background-color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.ab-chip:hover { background: var(--ink); border-color: var(--ink); color: var(--on-ink); }
+
+/* ---------- Values: open columns on the dark band (no boxes) ---------- */
+
+.ab-values {
+  display: grid;
+  gap: 0;
+  grid-template-columns: minmax(0, 1fr);
+  counter-reset: value;
+}
+.ab-value {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 1.75rem 0 2rem;
+  border-top: 1px solid var(--line-strong);
+}
+.ab-value-top { display: flex; align-items: center; justify-content: space-between; }
+.ab-value .icon { width: 2rem; height: 2rem; color: var(--accent-text); }
+.ab-value-num {
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+.ab-value h3 { font-size: 1.375rem; }
+.ab-value p { font-size: var(--fs-body); line-height: 1.6; color: var(--grey); max-width: 34ch; }
+@media (min-width: 640px) {
+  .ab-values { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: clamp(1.5rem, 4vw, 3rem); }
+}
+@media (min-width: 1200px) {
+  .ab-values { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+/* ---------- Photo strip ---------- */
+
+.ab-strip {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+.ab-strip-item { margin: 0; }
+.ab-strip-item .media-frame { --ratio: 4 / 5; }
+@media (min-width: 900px) {
+  .ab-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--gap); align-items: start; }
+  /* staggered, so the strip reads as a rhythm rather than a table */
+  .ab-strip-item:nth-child(even) { margin-top: 2.5rem; }
+}

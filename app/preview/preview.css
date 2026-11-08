@@ -71,3 +71,50 @@
   line-height: 1;
 }
 .pv-card-wrap { position: relative; }
+
+/* ---------- Templates that mirror the redesigned public pages ---------- */
+
+/* Multi-paragraph text: show blank-line breaks the way the live page does. */
+.pv-pre { white-space: pre-line; display: block; }
+
+.pv-note {
+  font: 500 13px/1.5 Inter, system-ui, sans-serif;
+  color: #697060;
+  margin-top: 12px;
+}
+.section--dark .pv-note, .page-hero .pv-note { color: rgba(255, 255, 255, 0.7); }
+
+/* The editor bar is sticky, so the sticky site header sits just below it. */
+.pv-root .site-header { top: 33px; }
+
+/* Brand-green hover/edit affordances are unreadable on the dark bands. */
+.page-hero .pv-editable:hover,
+.section--dark .pv-editable:hover,
+.cta-band .pv-editable:hover,
+.site-footer .pv-editable:hover,
+.promo-bar .pv-editable:hover {
+  outline-color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.1);
+}
+.page-hero .pv-edit-field,
+.section--dark .pv-edit-field,
+.cta-band .pv-edit-field,
+.site-footer .pv-edit-field,
+.promo-bar .pv-edit-field {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: #cfe39a;
+}
+
+/* Editable bits inside buttons, badges and tags keep their own look. */
+.btn .pv-editable, .badge .pv-editable { outline-offset: 2px; }
+.pv-edit-field { min-width: 6ch; }
+
+/* Before/after shown side by side in the editor (the live page uses a slider). */
+.pv-ba-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.pv-ba-pair .media-frame { position: relative; width: 100%; }
+
+/* The remove button sits inside tight rows: keep it clear of the text. */
+.home-hero__trust .pv-card-wrap .pv-remove-btn,
+.form-assure .pv-card-wrap .pv-remove-btn,
+.check-list .pv-card-wrap .pv-remove-btn { top: -8px; right: -22px; }
+.pv-add-btn { margin-top: 8px; }

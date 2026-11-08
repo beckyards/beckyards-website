@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'Preview — BeckYards Admin',
+  title: { absolute: 'Preview — BeckYards Admin' },
   robots: { index: false, follow: false },
 };
 

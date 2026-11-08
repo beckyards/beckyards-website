@@ -61,6 +61,12 @@ const I = {
       <path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
     </svg>
   ),
+  jobs: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+      <rect x="8" y="2" width="8" height="4" rx="1" /><path d="M9 12h6M9 16h4" />
+    </svg>
+  ),
 };
 
 const LINKS = [
@@ -70,6 +76,7 @@ const LINKS = [
   { href: '/admin/aeration', label: 'Aeration List', icon: I.aeration },
   { href: '/admin/mowing-route', label: 'Clients', icon: I.mowing },
   { href: '/admin/route-run', label: 'Route', icon: I.route },
+  { href: '/admin/jobs', label: 'Jobs', icon: I.jobs },
   { href: '/admin/images', label: 'Images', icon: I.images },
   { href: '/admin/enhance', label: 'Enhance', icon: I.enhance },
   { href: '/admin/compare', label: 'Before/After', icon: I.compare },

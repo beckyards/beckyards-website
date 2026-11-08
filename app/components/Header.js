@@ -1,119 +1,403 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { SERVICES } from '../../lib/services';
 import { PROGRAMS } from '../../lib/programs';
+import './chrome.css';
+
+// Header stays a client component with code-level service/program lists because
+// the admin Visual editor (app/preview) imports it into a client tree, where an
+// async server component cannot be used.
+const NAV = [
+  {
+    id: 'services',
+    label: 'Services',
+    href: '/services',
+    allLabel: 'All services',
+    items: SERVICES.map((s) => ({ href: `/services/${s.slug}`, label: s.title })),
+  },
+  {
+    id: 'programs',
+    label: 'Programs',
+    href: '/programs',
+    allLabel: 'All programs',
+    wide: true,
+    items: PROGRAMS.map((p) => ({ href: `/programs/${p.slug}`, label: p.name, note: p.title })),
+  },
+  { id: 'about', label: 'About', href: '/about' },
+  { id: 'portfolio', label: 'Portfolio', href: '/portfolio' },
+  {
+    id: 'contact',
+    label: 'Contact',
+    href: '/contact',
+    match: ['/contact', '/aeration-signup'],
+    right: true,
+    wide: true,
+    items: [
+      { href: '/contact', label: 'Get a Quote', note: 'Free quotes through our contact form' },
+      { href: '/aeration-signup', label: 'Aeration Signup', note: 'Seasonal service, limited availability' },
+    ],
+  },
+];
+
+// Every page starts with a full-bleed hero (.page-hero, or the home page's own),
+// so the header is transparent over it until scrolled. Checked against the DOM on mount.
+const HERO_SELECTOR = '.page-hero, .home-hero, [data-hero]';
+// The bottom call-to-action never shows where the page already is a form.
+const NO_CTA_PREFIXES = ['/contact', '/aeration-signup', '/admin', '/preview'];
+
+const FOCUSABLE = 'a[href], button:not([disabled])';
+
+function matches(pathname, base) {
+  return pathname === base || pathname.startsWith(`${base}/`);
+}
+
+function Caret() {
+  return (
+    <svg className="nav-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M6 9l6 6 6-6" />
+    </svg>
+  );
+}
+
+function Logo() {
+  return <img className="site-logo-img" src="/logo.webp" alt="BeckYards Landscaping & Design" width="300" height="300" />;
+}
 
 export default function Header() {
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const pathname = usePathname() || '/';
+  const [hasHero, setHasHero] = useState(true);
   const [scrolled, setScrolled] = useState(false);
-  const closeMobile = () => setMobileOpen(false);
-  const pathname = usePathname();
-  const isHome = pathname === '/';
+  const [pastHero, setPastHero] = useState(false);
+  const [fieldFocused, setFieldFocused] = useState(false);
+  const [footerInView, setFooterInView] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [hovered, setHovered] = useState(null);
+  const [focused, setFocused] = useState(null);
+  const [dismissed, setDismissed] = useState(null);
+  const toggleRef = useRef(null);
+  const menuRef = useRef(null);
+  const closeRef = useRef(null);
 
-  // The header's translucent fade only looks right over the homepage hero
-  // photo — anywhere else (or once scrolled past it) it lets page text show
-  // through and overlap the nav, so it goes solid as soon as you scroll.
+  // The pathname guess above matches server HTML; confirm against the real page
+  // once mounted so a page without a hero never keeps a transparent header.
   useEffect(() => {
-    if (!isHome) return;
+    setHasHero(pathname === '/' || !!document.querySelector(HERO_SELECTOR));
+  }, [pathname]);
+
+  useEffect(() => {
     function onScroll() {
-      setScrolled(window.scrollY > 10);
+      const y = window.scrollY;
+      setScrolled(y > 10);
+      const hero = document.querySelector(HERO_SELECTOR);
+      setPastHero(hero ? hero.getBoundingClientRect().bottom < 60 : y > 360);
     }
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, [isHome]);
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, [pathname]);
 
-  const isSolid = !isHome || scrolled;
+  // Hide the bottom bar while a form field is focused so it never sits over the
+  // keyboard or the field being typed in.
+  useEffect(() => {
+    const isField = (el) => el instanceof HTMLElement && el.matches('input, textarea, select');
+    const onIn = (e) => setFieldFocused(isField(e.target));
+    const onOut = () => setFieldFocused(false);
+    document.addEventListener('focusin', onIn);
+    document.addEventListener('focusout', onOut);
+    return () => {
+      document.removeEventListener('focusin', onIn);
+      document.removeEventListener('focusout', onOut);
+    };
+  }, []);
+
+  // The footer and the on-page quote form (home) carry their own quote button, so
+  // the bar steps aside while either is on screen.
+  useEffect(() => {
+    const targets = [document.querySelector('.site-footer'), document.getElementById('contact')].filter(Boolean);
+    if (!targets.length || typeof IntersectionObserver === 'undefined') {
+      setFooterInView(false);
+      return undefined;
+    }
+    const visible = new Set();
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => (e.isIntersecting ? visible.add(e.target) : visible.delete(e.target)));
+      setFooterInView(visible.size > 0);
+    });
+    targets.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, [pathname]);
+
+  const closeMenu = useCallback((restoreFocus = false) => {
+    setMenuOpen(false);
+    if (restoreFocus) toggleRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    setMenuOpen(false);
+    setHovered(null);
+    setFocused(null);
+    setDismissed(null);
+  }, [pathname]);
+
+  // Mobile sheet: scroll lock, focus into the sheet, Escape, Tab trap, and close
+  // if the viewport grows to the desktop layout where the sheet is hidden.
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    const root = document.documentElement;
+    const prevOverflow = root.style.overflow;
+    root.style.overflow = 'hidden';
+    closeRef.current?.focus();
+
+    function onKey(e) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeMenu(true);
+        return;
+      }
+      if (e.key !== 'Tab' || !menuRef.current) return;
+      const nodes = menuRef.current.querySelectorAll(FOCUSABLE);
+      if (!nodes.length) return;
+      const first = nodes[0];
+      const last = nodes[nodes.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+    const mq = window.matchMedia('(min-width: 900px)');
+    const onMq = () => mq.matches && setMenuOpen(false);
+    document.addEventListener('keydown', onKey);
+    mq.addEventListener('change', onMq);
+    return () => {
+      root.style.overflow = prevOverflow;
+      document.removeEventListener('keydown', onKey);
+      mq.removeEventListener('change', onMq);
+    };
+  }, [menuOpen, closeMenu]);
+
+  function onItemKeyDown(e, id) {
+    if (e.key === 'Escape') {
+      if (hovered !== id && focused !== id) return;
+      setDismissed(id);
+      const trigger = e.currentTarget.querySelector('.nav-link');
+      if (trigger && document.activeElement !== trigger && e.currentTarget.contains(document.activeElement)) {
+        trigger.focus();
+      }
+      return;
+    }
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    const nodes = [...e.currentTarget.querySelectorAll('.nav-link, .nav-dropdown-menu a')];
+    const i = nodes.indexOf(document.activeElement);
+    if (i === -1) return;
+    e.preventDefault();
+    setDismissed(null);
+    const next = e.key === 'ArrowDown' ? (i + 1) % nodes.length : (i - 1 + nodes.length) % nodes.length;
+    nodes[next].focus();
+  }
+
+  const overHero = hasHero;
+  const ctaAllowed = !NO_CTA_PREFIXES.some((p) => matches(pathname, p));
+  const showCta = pastHero && !menuOpen && !fieldFocused && !footerInView;
 
   return (
-    <header className={isSolid ? 'is-solid' : undefined}>
-      <div className="nav">
-        <a className="logo" href="/#top">
-          <img className="logo-img" src="/logo.webp" alt="BeckYards Landscaping & Design" />
-        </a>
-        <nav className="nav-links">
-          {!isHome && <a href="/">Home</a>}
-          <div className="nav-dropdown">
-            <a href="/services" className="nav-dropdown-trigger">Services</a>
-            <div className="nav-dropdown-menu nav-dropdown-menu-compact">
-              {SERVICES.map((service) => (
-                <a href={`/services/${service.slug}`} key={service.slug}>
-                  <b>{service.title}</b>
-                </a>
-              ))}
-            </div>
-          </div>
-          <div className="nav-dropdown">
-            <a href="/programs" className="nav-dropdown-trigger">Programs</a>
-            <div className="nav-dropdown-menu nav-dropdown-menu-compact">
-              {PROGRAMS.map((program) => (
-                <a href={`/programs/${program.slug}`} key={program.slug}>
-                  <b>{program.name}</b>
-                </a>
-              ))}
-            </div>
-          </div>
-          <a href="/about">About</a>
-          <a href="/portfolio">Portfolio</a>
-          <div className="nav-dropdown nav-dropdown-right">
-            <a href="/contact" className="nav-dropdown-trigger">Contact</a>
-            <div className="nav-dropdown-menu nav-dropdown-menu-compact">
-              <a href="/contact"><b>Get a Quote</b></a>
-              <a href="/aeration-signup"><b>Aeration Signup</b></a>
-            </div>
-          </div>
-        </nav>
-        <a className="btn btn-solid btn-sm nav-cta" href="/contact">Free Quote</a>
-        <button
-          type="button"
-          className="nav-toggle"
-          onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label="Toggle menu"
-          aria-expanded={mobileOpen}
-        >
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-      </div>
+    <>
+      <header className={`site-header${overHero ? ' is-over-hero' : ''}${overHero && scrolled ? ' is-solid' : ''}`}>
+        <div className="wrap site-header-inner">
+          <Link className="site-logo" href="/">
+            <Logo />
+          </Link>
 
-      {mobileOpen && (
-        <div className="mobile-menu">
-          <div className="mobile-menu-group">
-            <a href="/" className="mobile-menu-heading" onClick={closeMobile}>Home</a>
+          <nav className="site-nav" aria-label="Main">
+            <ul className="site-nav-list">
+              {NAV.map((item) => {
+                const bases = item.match || [item.href];
+                const exact = bases.includes(pathname);
+                const inSection = bases.some((b) => matches(pathname, b));
+                const linkProps = {
+                  'aria-current': exact ? 'page' : undefined,
+                  className: `nav-link${inSection ? ' is-active' : ''}`,
+                };
+
+                if (!item.items) {
+                  return (
+                    <li className="nav-item" key={item.id}>
+                      <Link href={item.href} {...linkProps}>{item.label}</Link>
+                    </li>
+                  );
+                }
+
+                const open = (hovered === item.id || focused === item.id) && dismissed !== item.id;
+                const menuId = `nav-menu-${item.id}`;
+                return (
+                  <li
+                    key={item.id}
+                    className={`nav-item nav-dropdown${dismissed === item.id ? ' is-dismissed' : ''}`}
+                    onMouseEnter={() => { setHovered(item.id); setDismissed((d) => (d === item.id ? null : d)); }}
+                    onMouseLeave={() => { setHovered(null); setDismissed((d) => (d === item.id ? null : d)); }}
+                    onFocus={() => {
+                      if (focused !== item.id) {
+                        setFocused(item.id);
+                        setDismissed((d) => (d === item.id ? null : d));
+                      }
+                    }}
+                    onBlur={(e) => {
+                      if (!e.currentTarget.contains(e.relatedTarget)) setFocused(null);
+                    }}
+                    onKeyDown={(e) => onItemKeyDown(e, item.id)}
+                  >
+                    <Link href={item.href} {...linkProps} aria-expanded={open} aria-controls={menuId}>
+                      {item.label}
+                      <Caret />
+                    </Link>
+                    <div
+                      id={menuId}
+                      className={`nav-dropdown-menu${item.right ? ' nav-dropdown-menu--right' : ''}${item.wide ? ' nav-dropdown-menu--wide' : ''}`}
+                    >
+                      {item.items.map((sub) => (
+                        <Link
+                          href={sub.href}
+                          key={sub.href}
+                          prefetch={false}
+                          aria-current={pathname === sub.href ? 'page' : undefined}
+                        >
+                          <span>{sub.label}</span>
+                          {sub.note && <small>{sub.note}</small>}
+                        </Link>
+                      ))}
+                      {item.allLabel && (
+                        <Link href={item.href} prefetch={false} className="nav-dropdown-all">
+                          {item.allLabel}
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="M5 12h14M13 6l6 6-6 6" />
+                          </svg>
+                        </Link>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+
+          <div className="site-header-actions">
+            <Link className="btn btn-solid btn-sm" href="/contact">Free Quote</Link>
+            <button
+              ref={toggleRef}
+              type="button"
+              className="nav-toggle"
+              onClick={() => setMenuOpen(true)}
+              aria-label="Open menu"
+              aria-expanded={menuOpen}
+              aria-controls="mobile-menu"
+            >
+              <span className="nav-toggle-bar" />
+              <span className="nav-toggle-bar" />
+              <span className="nav-toggle-bar" />
+            </button>
           </div>
-          <div className="mobile-menu-group">
-            <a href="/services" className="mobile-menu-heading" onClick={closeMobile}>Services</a>
-            {SERVICES.map((service) => (
-              <a href={`/services/${service.slug}`} key={service.slug} className="mobile-submenu-link" onClick={closeMobile}>
-                {service.title}
-              </a>
-            ))}
+        </div>
+
+        {menuOpen && (
+          <div className="mobile-menu" id="mobile-menu" role="dialog" aria-modal="true" aria-label="Site menu" ref={menuRef}>
+            <div className="mobile-menu-head">
+              <Link className="site-logo" href="/" onClick={() => closeMenu()}>
+                <Logo />
+              </Link>
+              <button
+                ref={closeRef}
+                type="button"
+                className="nav-toggle"
+                onClick={() => closeMenu(true)}
+                aria-label="Close menu"
+                aria-expanded="true"
+              >
+                <span className="nav-toggle-bar" />
+                <span className="nav-toggle-bar" />
+                <span className="nav-toggle-bar" />
+              </button>
+            </div>
+
+            <nav className="mobile-menu-body" aria-label="Mobile">
+              {NAV.filter((n) => n.items && n.id !== 'contact').map((item) => (
+                <div className="mobile-menu-group" key={item.id}>
+                  <Link
+                    href={item.href}
+                    className="mobile-menu-link"
+                    aria-current={pathname === item.href ? 'page' : undefined}
+                    onClick={() => closeMenu()}
+                  >
+                    {item.label}
+                  </Link>
+                  <div className="mobile-menu-sub">
+                    {item.items.map((sub) => (
+                      <Link
+                        href={sub.href}
+                        key={sub.href}
+                        prefetch={false}
+                        aria-current={pathname === sub.href ? 'page' : undefined}
+                        onClick={() => closeMenu()}
+                      >
+                        {sub.label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              <div className="mobile-menu-group">
+                {NAV.filter((n) => !n.items).map((item) => (
+                  <Link
+                    href={item.href}
+                    key={item.id}
+                    className="mobile-menu-link"
+                    aria-current={pathname === item.href ? 'page' : undefined}
+                    onClick={() => closeMenu()}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+              <div className="mobile-menu-group">
+                <Link
+                  href="/contact"
+                  className="mobile-menu-link"
+                  aria-current={pathname === '/contact' ? 'page' : undefined}
+                  onClick={() => closeMenu()}
+                >
+                  Contact
+                </Link>
+                <div className="mobile-menu-sub">
+                  <Link href="/contact" prefetch={false} onClick={() => closeMenu()}>Get a Quote</Link>
+                  <Link href="/aeration-signup" prefetch={false} onClick={() => closeMenu()}>Aeration Signup</Link>
+                </div>
+              </div>
+            </nav>
+
+            <div className="mobile-menu-foot">
+              <Link className="btn btn-solid btn-lg btn-block btn-arrow" href="/contact" onClick={() => closeMenu()}>
+                Free Quote
+              </Link>
+            </div>
           </div>
-          <div className="mobile-menu-group">
-            <a href="/programs" className="mobile-menu-heading" onClick={closeMobile}>Programs</a>
-            {PROGRAMS.map((program) => (
-              <a href={`/programs/${program.slug}`} key={program.slug} className="mobile-submenu-link" onClick={closeMobile}>
-                {program.name}
-              </a>
-            ))}
-          </div>
-          <div className="mobile-menu-group">
-            <a href="/about" className="mobile-menu-heading" onClick={closeMobile}>About</a>
-          </div>
-          <div className="mobile-menu-group">
-            <a href="/portfolio" className="mobile-menu-heading" onClick={closeMobile}>Portfolio</a>
-          </div>
-          <div className="mobile-menu-group">
-            <a href="/contact" className="mobile-menu-heading" onClick={closeMobile}>Contact</a>
-            <a href="/contact" className="mobile-submenu-link" onClick={closeMobile}>Get a Quote</a>
-            <a href="/aeration-signup" className="mobile-submenu-link" onClick={closeMobile}>Aeration Signup</a>
-          </div>
-          <a className="btn btn-solid btn-sm" href="/contact" onClick={closeMobile}>Free Quote</a>
+        )}
+      </header>
+
+      {ctaAllowed && (
+        <div className={`mobile-cta mobile-cta--bar${showCta ? ' is-visible' : ''}`}>
+          <Link className="btn btn-solid btn-arrow" href="/contact" tabIndex={showCta ? undefined : -1}>
+            Free Quote
+          </Link>
         </div>
       )}
-    </header>
+    </>
   );
 }
