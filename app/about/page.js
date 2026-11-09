@@ -65,6 +65,12 @@ export default async function AboutPage() {
     .split(/\n{2,}/)
     .map((p) => p.trim())
     .filter(Boolean);
+  const faithParagraphs = String(c.faithBody || '')
+    .split(/\n{2,}/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+  const showFaith = Boolean(String(c.faithHeading || '').trim() || faithParagraphs.length);
+  const faithVerse = String(c.faithVerse || '').trim();
   const values = Array.isArray(c.values) ? c.values.filter((v) => v && (v.title || v.body)) : [];
   const storySrc = photoSrc(c.storyPhoto);
   const ctaSrc = photoSrc(c.ctaPhoto);
@@ -146,6 +152,34 @@ export default async function AboutPage() {
             </div>
           </div>
         </section>
+
+        {showFaith && (
+          <section className="section section--sage ab-faith" aria-labelledby="ab-faith-heading">
+            <div className="wrap">
+              <div className="ab-faith-grid">
+                <div className="section-head ab-faith-head">
+                  {c.faithEyebrow && <p className="eyebrow eyebrow--rule">{c.faithEyebrow}</p>}
+                  <h2 id="ab-faith-heading">{c.faithHeading}</h2>
+                </div>
+                <div className="ab-faith-copy">
+                  <div className="prose">
+                    {faithParagraphs.map((p, i) => (
+                      <p key={i}>{p}</p>
+                    ))}
+                  </div>
+                  {faithVerse && (
+                    <figure className="ab-faith-verse">
+                      <blockquote>
+                        <p>{faithVerse}</p>
+                      </blockquote>
+                      {c.faithVerseRef && <figcaption>{c.faithVerseRef}</figcaption>}
+                    </figure>
+                  )}
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
 
         {values.length > 0 && (
           <section className="section section--dark">

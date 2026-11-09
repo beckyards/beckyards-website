@@ -83,6 +83,37 @@ export default function AboutView({ c, set: setC }) {
           </div>
         </section>
 
+        <section className="section section--sage ab-faith">
+          <div className="wrap">
+            <div className="ab-faith-grid">
+              <div className="section-head ab-faith-head">
+                <p className="eyebrow eyebrow--rule">
+                  <Editable {...edit('faithEyebrow')} />
+                </p>
+                <h2>
+                  <Editable {...edit('faithHeading', { placeholder: 'Heading' })} />
+                </h2>
+              </div>
+              <div className="ab-faith-copy">
+                <div className="prose">
+                  <Editable as="p" className="pv-pre" {...edit('faithBody', { multiline: true })} />
+                  <p className="pv-note">A blank line starts a new paragraph. Clear the heading and text to hide this section.</p>
+                </div>
+                <figure className="ab-faith-verse">
+                  <blockquote>
+                    <p>
+                      <Editable {...edit('faithVerse', { multiline: true, placeholder: 'Optional Bible verse' })} />
+                    </p>
+                  </blockquote>
+                  <figcaption>
+                    <Editable {...edit('faithVerseRef', { placeholder: 'Reference' })} />
+                  </figcaption>
+                </figure>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section className="section section--dark">
           <div className="wrap">
             <div className="section-head">
