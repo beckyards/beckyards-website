@@ -55,7 +55,10 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${archivo.variable} ${inter.variable}`}>
+    // data-scroll-behavior: globals.css sets `scroll-behavior: smooth`. Next 16 no
+    // longer switches that off while changing pages, so without this attribute the
+    // jump-to-top after a link click animates and lands partway down the new page.
+    <html lang="en" data-scroll-behavior="smooth" className={`${archivo.variable} ${inter.variable}`}>
       <body>
         <a className="skip-link" href="#main">Skip to content</a>
         <PromoBar />
