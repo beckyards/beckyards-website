@@ -222,14 +222,7 @@ export default function Header() {
             </Link>
             {/* A plain, labelled way back to the home page from every other page. */}
             {showHomeLink && (
-              <Link className="home-link" href="/" aria-label="Back to the BeckYards home page">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M3 11.5 12 4l9 7.5" />
-                  <path d="M5.5 10v9.5h13V10" />
-                  <path d="M10 19.5V14h4v5.5" />
-                </svg>
-                <span>Home</span>
-              </Link>
+              <Link className="nav-link home-link" href="/">Home</Link>
             )}
           </div>
 
