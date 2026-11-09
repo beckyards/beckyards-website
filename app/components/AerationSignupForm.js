@@ -43,7 +43,8 @@ function splitHighlights(highlights) {
 
 // `service` is the aeration entry from the services content (title, tag, body,
 // highlights), so the summary stays in sync with what the owner edits in admin.
-export default function AerationSignupForm({ service }) {
+// `season` is the label this list is collecting for (e.g. "Fall 2027").
+export default function AerationSignupForm({ service, season }) {
   const [form, setForm] = useState(EMPTY);
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState({ state: 'idle', message: '' });
@@ -107,7 +108,10 @@ export default function AerationSignupForm({ service }) {
         throw new Error(data.error || 'Something went wrong. Please try again.');
       }
 
-      setStatus({ state: 'success', message: "You're on the list — we'll be in touch with pricing and scheduling." });
+      setStatus({
+        state: 'success',
+        message: `You're on the ${season || 'aeration'} list — we'll be in touch with pricing and scheduling.`,
+      });
       setForm(EMPTY);
       setErrors({});
     } catch (err) {
@@ -178,9 +182,12 @@ export default function AerationSignupForm({ service }) {
             </div>
           ) : (
             <form onSubmit={handleSubmit} noValidate>
-              <h3 className="form-card-title">Get on the aeration list</h3>
+              <h3 className="form-card-title">
+                {season ? `Get on the ${season} aeration list` : 'Get on the aeration list'}
+              </h3>
               <p className="form-card-sub">
-                Limited availability this season. Your name and phone number are all we need.
+                {season ? `Limited availability for ${season}.` : 'Limited availability this season.'} Your name and
+                phone number are all we need.
               </p>
 
               <div className="form-grid">

@@ -114,6 +114,47 @@ export default function HomeView({ c, set: setC }) {
           </div>
         </section>
 
+        {/* 2b. Leaf cleanup (seasonal, now booking) */}
+        <section className="section section--white home-leaf" id="leaf-cleanup">
+          <div className="wrap">
+            <div className="split split--7-5 home-leaf__split">
+              <div className="stack stack--lg">
+                <div className="stack stack--sm">
+                  <p className="eyebrow eyebrow--rule">
+                    <Editable {...edit('leafEyebrow')} />
+                  </p>
+                  <h2>
+                    <Editable {...edit('leafHeading', { placeholder: 'Heading (clear to hide this section)' })} />
+                  </h2>
+                  <span className="badge badge--solid home-leaf__note">
+                    <Editable {...edit('leafNote')} />
+                  </span>
+                </div>
+                <p className="lead home-leaf__body">
+                  <Editable {...edit('leafBody', { multiline: true })} />
+                </p>
+                <div className="cluster cluster--lg">
+                  <span className="btn btn-solid btn-lg btn-arrow">
+                    <Editable {...edit('leafCtaLabel')} />
+                  </span>
+                  <span className="link-arrow">
+                    <Editable {...edit('leafDetailsLabel')} />
+                  </span>
+                </div>
+              </div>
+              <div className="media-frame ratio-4-3 media-frame--shadow home-leaf__media">
+                <SmartImage
+                  src={photoSrc(c.leafPhoto, IMAGES.services['seasonal-cleanups'])}
+                  alt=""
+                  fill
+                  sizes="(min-width: 900px) 40vw, 100vw"
+                  quality={60}
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* 3. Aeration (seasonal) */}
         {aeration && (
           <section className="section section--dark home-aeration" id="aeration">

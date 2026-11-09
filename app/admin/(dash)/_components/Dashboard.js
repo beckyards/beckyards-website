@@ -140,7 +140,11 @@ export default function Dashboard() {
         </a>
         <a className="admin-card" href="/admin/aeration">
           <h2>Aeration List →</h2>
-          <p>Everyone who signed up for aeration & overseeding, with a spot to set their price.</p>
+          <p>Everyone who signed up for aeration & overseeding, by season, with a spot to set their price.</p>
+        </a>
+        <a className="admin-card" href="/admin/leaf-cleanup">
+          <h2>Leaf Cleanup →</h2>
+          <p>Everyone who signed up for a fall leaf cleanup, with their notes and a spot to set their price.</p>
         </a>
         <a className="admin-card" href="/admin/mowing-route">
           <h2>Clients →</h2>

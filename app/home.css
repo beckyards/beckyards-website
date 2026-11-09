@@ -125,6 +125,16 @@
 
 /* ---------- 3. Aeration ---------- */
 
+/* ---------- 2b. Leaf cleanup (now booking) ---------- */
+
+.home-leaf .split { gap: clamp(2rem, 1rem + 4vw, 5rem); align-items: center; }
+.home-leaf__note { align-self: flex-start; white-space: normal; line-height: 1.35; padding: 0.6em 1em; border-radius: 1rem; }
+.home-leaf__body { max-width: 52ch; color: var(--grey); }
+/* Photo first on phones so the offer reads image -> headline -> button. */
+@media (max-width: 899px) {
+  .home-leaf__media { order: -1; --ratio: 16 / 10; }
+}
+
 .home-aeration { border-block: 0; }
 .home-aeration .split { gap: clamp(2rem, 1rem + 4vw, 5rem); }
 .home-aeration__media { --ratio: 16 / 10; }

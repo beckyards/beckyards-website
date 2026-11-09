@@ -32,12 +32,13 @@ const NAV = [
     id: 'contact',
     label: 'Contact',
     href: '/contact',
-    match: ['/contact', '/aeration-signup'],
+    match: ['/contact', '/aeration-signup', '/leaf-cleanup-signup'],
     right: true,
     wide: true,
     items: [
       { href: '/contact', label: 'Get a Quote', note: 'Free quotes through our contact form' },
-      { href: '/aeration-signup', label: 'Aeration Signup', note: 'Seasonal service, limited availability' },
+      { href: '/leaf-cleanup-signup', label: 'Leaf Cleanup Signup', note: 'Fall cleanup, now booking' },
+      { href: '/aeration-signup', label: 'Aeration Signup', note: 'Fall 2027, limited availability' },
     ],
   },
 ];
@@ -46,7 +47,7 @@ const NAV = [
 // so the header is transparent over it until scrolled. Checked against the DOM on mount.
 const HERO_SELECTOR = '.page-hero, .home-hero, [data-hero]';
 // The bottom call-to-action never shows where the page already is a form.
-const NO_CTA_PREFIXES = ['/contact', '/aeration-signup', '/admin', '/preview'];
+const NO_CTA_PREFIXES = ['/contact', '/aeration-signup', '/leaf-cleanup-signup', '/admin', '/preview'];
 
 const FOCUSABLE = 'a[href], button:not([disabled])';
 
@@ -206,6 +207,8 @@ export default function Header() {
   }
 
   const overHero = hasHero;
+  // Everywhere except the home page itself (and the admin/editor screens).
+  const showHomeLink = pathname !== '/' && !matches(pathname, '/admin') && !matches(pathname, '/preview');
   const ctaAllowed = !NO_CTA_PREFIXES.some((p) => matches(pathname, p));
   const showCta = pastHero && !menuOpen && !fieldFocused && !footerInView;
 
@@ -213,9 +216,22 @@ export default function Header() {
     <>
       <header className={`site-header${overHero ? ' is-over-hero' : ''}${overHero && scrolled ? ' is-solid' : ''}`}>
         <div className="wrap site-header-inner">
-          <Link className="site-logo" href="/">
-            <Logo />
-          </Link>
+          <div className="site-brand">
+            <Link className="site-logo" href="/">
+              <Logo />
+            </Link>
+            {/* A plain, labelled way back to the home page from every other page. */}
+            {showHomeLink && (
+              <Link className="home-link" href="/" aria-label="Back to the BeckYards home page">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M3 11.5 12 4l9 7.5" />
+                  <path d="M5.5 10v9.5h13V10" />
+                  <path d="M10 19.5V14h4v5.5" />
+                </svg>
+                <span>Home</span>
+              </Link>
+            )}
+          </div>
 
           <nav className="site-nav" aria-label="Main">
             <ul className="site-nav-list">
@@ -377,6 +393,7 @@ export default function Header() {
                 </Link>
                 <div className="mobile-menu-sub">
                   <Link href="/contact" prefetch={false} onClick={() => closeMenu()}>Get a Quote</Link>
+                  <Link href="/leaf-cleanup-signup" prefetch={false} onClick={() => closeMenu()}>Leaf Cleanup Signup</Link>
                   <Link href="/aeration-signup" prefetch={false} onClick={() => closeMenu()}>Aeration Signup</Link>
                 </div>
               </div>

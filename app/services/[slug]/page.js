@@ -97,6 +97,9 @@ export default async function ServicePage({ params }) {
               {isAeration && (
                 <Link className="btn btn-outline-light btn-lg" href="/contact">{D.askCta}</Link>
               )}
+              {service.slug === 'seasonal-cleanups' && (
+                <Link className="btn btn-outline-light btn-lg" href="/leaf-cleanup-signup">Leaf cleanup signup</Link>
+              )}
             </div>
           </div>
         </section>

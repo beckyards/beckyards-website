@@ -235,6 +235,43 @@ export default async function Home() {
           </div>
         </section>
 
+        {/* 2b. Leaf cleanup (seasonal, now booking) */}
+        {String(c.leafHeading || '').trim() && (
+          <section className="section section--white home-leaf" id="leaf-cleanup" aria-labelledby="home-leaf-title">
+            <div className="wrap">
+              <div className="split split--7-5 home-leaf__split">
+                <div className="stack stack--lg">
+                  <div className="stack stack--sm">
+                    {c.leafEyebrow && <p className="eyebrow eyebrow--rule">{c.leafEyebrow}</p>}
+                    <h2 id="home-leaf-title">{c.leafHeading}</h2>
+                    {c.leafNote && <span className="badge badge--solid home-leaf__note">{c.leafNote}</span>}
+                  </div>
+                  {c.leafBody && <p className="lead home-leaf__body">{c.leafBody}</p>}
+                  <div className="cluster cluster--lg">
+                    <Link className="btn btn-solid btn-lg btn-arrow" href="/leaf-cleanup-signup">
+                      {c.leafCtaLabel || 'Sign Up'}
+                    </Link>
+                    {c.leafDetailsLabel && (
+                      <Link className="link-arrow" href="/services/seasonal-cleanups">
+                        {c.leafDetailsLabel}
+                      </Link>
+                    )}
+                  </div>
+                </div>
+                <div className="media-frame ratio-4-3 media-frame--shadow home-leaf__media">
+                  <SmartImage
+                    src={photoSrc(c.leafPhoto, IMAGES.services['seasonal-cleanups'])}
+                    alt={photoAlt(c.leafPhoto)}
+                    fill
+                    sizes="(min-width: 1280px) 460px, (min-width: 900px) 40vw, 100vw"
+                    quality={75}
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* 3. Aeration (seasonal) */}
         {aeration && (
           <section className="section section--dark home-aeration" id="aeration" aria-labelledby="home-aeration-title">

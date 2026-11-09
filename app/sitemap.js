@@ -37,6 +37,7 @@ export default async function sitemap() {
     entry('/portfolio', 'weekly', 0.7),
     entry('/contact', 'yearly', 0.9),
     entry('/aeration-signup', 'monthly', 0.6),
+    entry('/leaf-cleanup-signup', 'monthly', 0.6),
     entry('/terms', 'yearly', 0.2),
   ];
 }

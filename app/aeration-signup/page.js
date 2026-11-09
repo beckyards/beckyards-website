@@ -7,11 +7,11 @@ import { getContent } from '../../lib/siteContent';
 import { SERVICES, getService } from '../../lib/services';
 import { IMAGES } from '../../lib/siteImages';
 import { socialMeta } from '../../lib/seo';
+import { AERATION_SEASON } from '../../lib/seasons';
 
 export const revalidate = 60;
 
-const DESCRIPTION =
-  'Sign up for lawn aeration and overseeding with BeckYards Landscaping & Design. A seasonal service with limited availability.';
+const DESCRIPTION = `Sign up for ${AERATION_SEASON} lawn aeration and overseeding with BeckYards Landscaping & Design. A seasonal service with limited availability.`;
 
 export const metadata = {
   title: 'Aeration & Overseeding Signup',
@@ -52,15 +52,15 @@ export default async function AerationSignupPage() {
                 <li aria-current="page">Signup</li>
               </ol>
             </nav>
-            <p className="eyebrow">Seasonal Service</p>
+            <p className="eyebrow">{AERATION_SEASON} Season</p>
             <h1 className="h1">Aeration &amp; Overseeding Signup</h1>
             <p className="lead">
-              Give us your name and phone number and we’ll follow up with pricing and get you on the schedule.
+              Reserve your spot for {AERATION_SEASON}. Give us your name and phone number and we’ll follow up with pricing and get you on the schedule.
             </p>
           </div>
         </section>
 
-        <AerationSignupForm service={service} />
+        <AerationSignupForm service={service} season={AERATION_SEASON} />
       </main>
       <Footer />
     </>

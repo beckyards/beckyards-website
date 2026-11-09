@@ -19,6 +19,7 @@ export default async function Footer() {
     { href: '/about', label: 'About' },
     { href: '/portfolio', label: 'Portfolio' },
     { href: '/contact', label: 'Contact' },
+    { href: '/leaf-cleanup-signup', label: 'Leaf Cleanup Signup' },
     { href: '/aeration-signup', label: 'Aeration Signup' },
     { href: '/terms', label: c.termsLabel },
   ];

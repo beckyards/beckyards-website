@@ -74,6 +74,19 @@ This was a deliberate, explicit decision by the user after the very first versio
 
 Newest first.
 
+### 2026-11-08 (later) — Fall 2027 aeration, Leaf Cleanup sign-up, Home button, About page faith content, link-scroll fix
+
+- **Link scroll fix (live, `9e6ceeb`):** clicking a link landed at the bottom of the next page. Cause: `globals.css` sets `scroll-behavior: smooth` and Next 16 no longer overrides it on route changes. Fix: `data-scroll-behavior="smooth"` on `<html>` in `app/layout.js`.
+- **About page (live, `466f3da` + `4f5705d`):** Christian-values paragraph, a "Rooted in faith" value, and a new "Our Purpose" band ("We Serve Others to Glorify God", Colossians 3:23 NIV). All copy is editable in Content → About page; clearing the heading + text hides the band. Wording is Claude's draft from the owner's brief: no church/denomination named.
+- **Seasons:** `lib/seasons.js` holds `AERATION_SEASON = 'Fall 2027'` and `LEAF_CLEANUP_SEASON = 'Fall 2026'`. **Change these each year.** The API routes stamp the season server-side (never from the request body). DB migrations applied to the live BeckYards Supabase: `aeration_signups.season` (the 9 existing rows backfilled to `Fall 2026`, default `Fall 2027`, NOT NULL), new `leaf_cleanup_signups` table (RLS on; anon INSERT-only policy that also blocks pre-setting price/completed and caps field lengths; a follow-up migration tightened it after review).
+- **Aeration:** public page/form/home note now say Fall 2027. Admin Aeration List groups rows by season with tabs (Fall 2027 default, Fall 2026 keeps the original 9).
+- **Leaf Cleanup (new):** public `/leaf-cleanup-signup` (name + phone required; email, address, notes optional), API `/api/leaf-cleanup-signup`, admin page `/admin/leaf-cleanup` (same edit-in-place/price/done/reorder/delete as Aeration, plus a Notes column), "Leaf Cleanup" in the admin nav + dashboard, a home-page band ("Leaf Cleanup — Now Booking", editable via Content → Home page, `leaf*` keys, mirrored in the Visual editor), Contact dropdown + mobile menu + footer + sitemap links, and a "Leaf cleanup signup" button on the Seasonal Cleanups service page. The promo bar was NOT changed (still "Now accepting new lawn mowing clients" → /contact).
+- **Shared code:** admin API logic is in `lib/signupAdminApi.js` (used by `/api/admin/aeration` and `/api/admin/leaf-cleanup`); the admin list UI is `_components/SignupListView.js` (`AerationView.js` / `LeafCleanupView.js` are thin configs).
+- **Home button:** a labelled "Home" pill next to the logo in the top-left of the header on every page except `/`, `/admin*`, `/preview*` (`.home-link` in `globals.css`, markup in `Header.js`).
+- **Reviewed:** an independent 3-lens workflow review found two low issues (stale season tab after deleting a season's last row; anon insert could pre-set admin fields): both fixed. **Known, pre-existing, not changed:** the `aeration_signups` and `messages` anon INSERT policies are still `with check (true)` (a direct REST call with the public anon key can set any column / oversized text); the leaf table was tightened but those two were left alone. Worth the same tightening later.
+- **Test rows:** all `ZZ TEST` rows created during verification were deleted; leaf list is empty, aeration list has exactly the original 9.
+- **Dev server gotcha:** stopping the background dev-server task can leave `node.exe` holding port 3001; kill the BeckYards `node.exe` listening on 3001 before restarting.
+
 ### 2026-11-08 — Admin Jobs page + full public-site redesign (committed `0f9d45b`, pushed, LIVE)
 
 - **Asked:** (1) an admin section listing jobs to do with estimated time and priority, pulling client names from Clients; (2) revamp the whole public website to be cleaner, sharper, more appealing and easier to navigate.

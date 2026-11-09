@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '../../../lib/supabaseClient';
+import { AERATION_SEASON } from '../../../lib/seasons';
 
 const VALID_SERVICE_TYPES = new Set(['aeration', 'aeration_overseeding']);
 
@@ -21,6 +22,8 @@ export async function POST(request) {
         email: email || null,
         address: address || null,
         service_type: VALID_SERVICE_TYPES.has(serviceType) ? serviceType : 'aeration_overseeding',
+        // Always stamped server-side (never trusted from the browser).
+        season: AERATION_SEASON,
       },
     ]);
 
