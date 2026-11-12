@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/browser';
+import { DASHBOARD_LINK, SECTIONS } from './adminSections';
 
 const I = {
   dashboard: (
@@ -81,21 +82,15 @@ const I = {
   ),
 };
 
-const LINKS = [
-  { href: '/admin', label: 'Dashboard', icon: I.dashboard },
-  { href: '/admin/analytics', label: 'Analytics', icon: I.analytics },
-  { href: '/admin/messages', label: 'Messages', icon: I.messages },
-  { href: '/admin/aeration', label: 'Aeration List', icon: I.aeration },
-  { href: '/admin/leaf-cleanup', label: 'Leaf Cleanup', icon: I.leaf },
-  { href: '/admin/clients', label: 'Clients', icon: I.clients },
-  { href: '/admin/mowing-route', label: 'Mowing Routes', icon: I.mowing },
-  { href: '/admin/route-run', label: 'Run Route', icon: I.route },
-  { href: '/admin/jobs', label: 'Jobs', icon: I.jobs },
-  { href: '/admin/images', label: 'Images', icon: I.images },
-  { href: '/admin/enhance', label: 'Enhance', icon: I.enhance },
-  { href: '/admin/compare', label: 'Before/After', icon: I.compare },
-  { href: '/admin/content', label: 'Content', icon: I.content },
-];
+function NavLink({ link, pathname }) {
+  const active = link.href === '/admin' ? pathname === '/admin' : pathname.startsWith(link.href);
+  return (
+    <a href={link.href} className={active ? 'is-active' : undefined} aria-current={active ? 'page' : undefined}>
+      {I[link.icon]}
+      {link.label}
+    </a>
+  );
+}
 
 export default function AdminNav({ email }) {
   const pathname = usePathname();
@@ -146,19 +141,16 @@ export default function AdminNav({ email }) {
             </svg>
           </button>
         </div>
-        <nav>
-          {LINKS.map((link) => {
-            const active =
-              link.href === '/admin'
-                ? pathname === '/admin'
-                : pathname.startsWith(link.href);
-            return (
-              <a key={link.href} href={link.href} className={active ? 'is-active' : undefined}>
-                {link.icon}
-                {link.label}
-              </a>
-            );
-          })}
+        <nav aria-label="Admin sections">
+          <NavLink link={DASHBOARD_LINK} pathname={pathname} />
+          {SECTIONS.map((section) => (
+            <div key={section.key} className="admin-nav-group" role="group" aria-labelledby={`admin-nav-${section.key}`}>
+              <span className="admin-nav-label" id={`admin-nav-${section.key}`}>{section.title}</span>
+              {section.items.map((link) => (
+                <NavLink key={link.href} link={link} pathname={pathname} />
+              ))}
+            </div>
+          ))}
         </nav>
         <div className="admin-nav-foot">
           <span className="admin-whoami">Signed in as</span>

@@ -75,6 +75,12 @@ This was a deliberate, explicit decision by the user after the very first versio
 
 Newest first.
 
+### 2026-11-12 (later) — Admin panel organized into sections
+
+- **Asked:** make the whole admin panel more organized (sign-up lists in their own section, image tools in theirs, etc.).
+- **Structure now (sidebar + dashboard cards, both generated from `app/admin/(dash)/adminSections.js`):** Dashboard (top, ungrouped) → **Inbox** (Messages) → **Seasonal Sign-ups** (Aeration List, Leaf Cleanup) → **Clients & Jobs** (Clients, Jobs) → **Mowing** (Mowing Routes, Run Route) → **Photos** (Images, Enhance, Before/After) → **Website** (Content, Analytics). **To add or move an admin page, edit `adminSections.js` only** (give it an `icon` key that exists in `AdminNav.js`, and a one-line `desc` for the dashboard card).
+- **UI:** small uppercase group labels in the sidebar; the sidebar's link list scrolls on short screens (footer with Log out stays pinned); the dashboard's old flat card list is now one labeled block per section and now includes the previously missing Messages / Enhance / Before-After cards. Active page gets `aria-current="page"`.
+
 ### 2026-11-12 — Clients restructure: one master client list + separate Mowing Routes
 
 - **Asked:** "Clients" was just the two mowing routes. Wanted a general list of ALL clients (yearly landscaping, one-time, etc.) plus the mowing routes as their own thing.

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { StatTile, Panel, BarList, Skeleton, fmt } from './ui';
 import TrafficChart from './TrafficChart';
+import { SECTIONS } from '../adminSections';
 
 const KEY_LABEL = { work: 'Work galleries', services: 'Services', offers: 'Offers' };
 
@@ -133,43 +134,20 @@ export default function Dashboard() {
         )}
       </Panel>
 
-      <div className="admin-cards">
-        <a className="admin-card" href="/admin/analytics">
-          <h2>Analytics →</h2>
-          <p>Traffic trends, top pages, referrers, devices and countries over 7–90 days.</p>
-        </a>
-        <a className="admin-card" href="/admin/aeration">
-          <h2>Aeration List →</h2>
-          <p>Everyone who signed up for aeration & overseeding, by season, with a spot to set their price.</p>
-        </a>
-        <a className="admin-card" href="/admin/leaf-cleanup">
-          <h2>Leaf Cleanup →</h2>
-          <p>Everyone who signed up for a fall leaf cleanup, with their notes and a spot to set their price.</p>
-        </a>
-        <a className="admin-card" href="/admin/clients">
-          <h2>Clients →</h2>
-          <p>Everyone you work for in one list: mowing, landscaping, one-time and yearly jobs.</p>
-        </a>
-        <a className="admin-card" href="/admin/mowing-route">
-          <h2>Mowing Routes →</h2>
-          <p>Route A and Route B: set each stop's price and cut height, and drag to set the driving order.</p>
-        </a>
-        <a className="admin-card" href="/admin/route-run">
-          <h2>Run Route →</h2>
-          <p>Pick Route A or B, check clients off as you mow, and look back at completed routes.</p>
-        </a>
-        <a className="admin-card" href="/admin/jobs">
-          <h2>Jobs →</h2>
-          <p>Your to-do list: jobs with a time estimate, priority and expected income, with Scheduled and Earned totals.</p>
-        </a>
-        <a className="admin-card" href="/admin/images">
-          <h2>Images →</h2>
-          <p>Upload photos, rename them to something you'll recognize, copy URLs, or delete.</p>
-        </a>
-        <a className="admin-card" href="/admin/content">
-          <h2>Content →</h2>
-          <p>Edit every page's words — headlines, intros, team bios, terms — form or raw JSON.</p>
-        </a>
+      <div className="admin-sections">
+        {SECTIONS.map((section) => (
+          <section key={section.key} className="admin-section" aria-labelledby={`dash-${section.key}`}>
+            <h2 className="admin-section-title" id={`dash-${section.key}`}>{section.title}</h2>
+            <div className="admin-cards">
+              {section.items.map((item) => (
+                <a key={item.href} className="admin-card" href={item.href}>
+                  <h3>{item.label} →</h3>
+                  <p>{item.desc}</p>
+                </a>
+              ))}
+            </div>
+          </section>
+        ))}
       </div>
 
       {stats?.overrides?.length > 0 && (
