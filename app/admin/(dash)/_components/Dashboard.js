@@ -156,7 +156,7 @@ export default function Dashboard() {
         </a>
         <a className="admin-card" href="/admin/jobs">
           <h2>Jobs →</h2>
-          <p>Your to-do list: jobs with a time estimate and priority, with clients pulled straight in.</p>
+          <p>Your to-do list: jobs with a time estimate, priority and expected income, with Scheduled and Earned totals.</p>
         </a>
         <a className="admin-card" href="/admin/images">
           <h2>Images →</h2>

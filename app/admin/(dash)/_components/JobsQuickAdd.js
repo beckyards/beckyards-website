@@ -4,15 +4,21 @@ import { useEffect, useRef, useState } from 'react';
 import { PRIORITIES, PRIORITY_LABELS } from '../../../../lib/jobs';
 import JobsClientPicker from './JobsClientPicker';
 import JobsTimePicker from './JobsTimePicker';
+import JobsIncomePicker from './JobsIncomePicker';
 import { Icon } from './JobsIcons';
 
 // The add bar. Priority and time deliberately survive an add so a run of
-// similar jobs is just: type, Enter, type, Enter.
+// similar jobs is just: type, Enter, type, Enter. The dollar amount is cleared
+// each time, because it's different on almost every job.
 export default function JobsQuickAdd({ clients, clientsError, ready, loadFailed, onAdd }) {
   const [title, setTitle] = useState('');
   const [client, setClient] = useState(null);
   const [clientText, setClientText] = useState('');
   const [minutes, setMinutes] = useState(null);
+  const [income, setIncome] = useState(null);
+  const [incomeKey, setIncomeKey] = useState(0); // bumping it re-creates the income box from `income`
+  const [incomeBad, setIncomeBad] = useState(false); // box holds text that isn't a valid amount
+  const incomeText = useRef(false); // true while the box has anything typed in it
   const [priority, setPriority] = useState('medium');
   const titleRef = useRef(null);
   const addRef = useRef(null);
@@ -38,18 +44,32 @@ export default function JobsQuickAdd({ clients, clientsError, ready, loadFailed,
     e.preventDefault();
     const t = title.trim();
     if (!t || !ready) { titleRef.current?.focus(); return; }
+    // Don't quietly save the job without an amount the person tried to type.
+    if (incomeBad) { document.getElementById('jobs-income-input')?.focus(); return; }
     const c = resolveClient();
+
+    const amount = income;
 
     setTitle('');
     setClient(null);
     setClientText('');
+    setIncome(null);
+    setIncomeBad(false);
+    incomeText.current = false;
+    setIncomeKey((k) => k + 1);
     titleRef.current?.focus();
 
-    Promise.resolve(onAdd({ title: t, client: c, minutes, priority })).catch(() => false).then((ok) => {
+    Promise.resolve(onAdd({ title: t, client: c, minutes, income: amount, priority })).catch(() => false).then((ok) => {
       if (ok) return;
       // The add failed: give the text back unless they've already started the next one.
       setTitle((cur) => cur || t);
       setClient((cur) => cur || c);
+      // Only if the box is still untouched; never remount it under someone who is typing.
+      if (amount != null && !incomeText.current) {
+        setIncome(amount);
+        incomeText.current = true;
+        setIncomeKey((k) => k + 1);
+      }
     });
   }
 
@@ -99,6 +119,18 @@ export default function JobsQuickAdd({ clients, clientsError, ready, loadFailed,
       <div className="jobs-field jobs-add-time">
         <span className="jobs-label">Estimated time (optional)</span>
         <JobsTimePicker minutes={minutes} onChange={setMinutes} />
+      </div>
+
+      <div className="jobs-field jobs-add-income">
+        <label className="jobs-label" htmlFor="jobs-income-input">Estimated income (optional)</label>
+        <JobsIncomePicker
+          key={incomeKey}
+          id="jobs-income-input"
+          amount={income}
+          onChange={setIncome}
+          onInvalid={setIncomeBad}
+          onText={(has) => { incomeText.current = has; }}
+        />
       </div>
 
       <div className="jobs-field jobs-add-prio">

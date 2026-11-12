@@ -9,6 +9,8 @@ import {
   PRIORITY_LABELS,
   compareJobs,
   formatMinutes,
+  formatMoney,
+  totalIncome,
   totalMinutes,
 } from '../../../../lib/jobs';
 
@@ -236,6 +238,7 @@ export default function JobsView() {
       client_name: f.client_name || null,
       address: f.address || null,
       estimated_minutes: f.estimated_minutes ?? null,
+      estimated_income: f.estimated_income ?? null,
       priority: f.priority || 'medium',
       notes: f.notes || null,
       done: false,
@@ -245,7 +248,13 @@ export default function JobsView() {
     };
 
     // A client link wins; the server fills in its name and address.
-    const body = { title: f.title, priority: temp.priority, estimated_minutes: temp.estimated_minutes, notes: temp.notes };
+    const body = {
+      title: f.title,
+      priority: temp.priority,
+      estimated_minutes: temp.estimated_minutes,
+      estimated_income: temp.estimated_income,
+      notes: temp.notes,
+    };
     if (temp.client_id) {
       body.client_id = temp.client_id;
     } else if (temp.client_name) {
@@ -272,7 +281,7 @@ export default function JobsView() {
     }
   }
 
-  async function handleQuickAdd({ title, client, minutes, priority }) {
+  async function handleQuickAdd({ title, client, minutes, income, priority }) {
     if (tab === 'done') setTab('open');
     setQuery('');
     const ok = await createJob({
@@ -281,11 +290,13 @@ export default function JobsView() {
       client_name: client?.name || null,
       address: client?.address || null,
       estimated_minutes: minutes,
+      estimated_income: income,
       priority,
     });
     if (ok) {
       const parts = [`Added “${clip(title, 50)}”`, PRIORITY_LABELS[priority]];
       if (minutes) parts.push(formatMinutes(minutes));
+      if (income != null) parts.push(formatMoney(income));
       if (client) parts.push(client.name);
       showNotice(parts.join(' · '));
     }
@@ -300,6 +311,7 @@ export default function JobsView() {
       client_name: job.client_name,
       address: job.client_id ? null : job.address,
       estimated_minutes: job.estimated_minutes,
+      estimated_income: job.estimated_income,
       priority: job.priority,
       notes: job.notes,
     });
@@ -329,7 +341,11 @@ export default function JobsView() {
       await Promise.all([...queues.current.values()].map((q) => q.tail));
       const ids = (jobsRef.current || []).filter((j) => j.done && !j._pending).map((j) => j.id);
       if (!ids.length) return;
-      if (!confirm(`Permanently delete ${plural(ids.length, 'completed job')}? This can't be undone.`)) return;
+      // Deleting a finished job also removes it from the "Earned" total, so say so.
+      const toClear = new Set(ids);
+      const earnedGone = totalIncome((jobsRef.current || []).filter((j) => toClear.has(j.id)));
+      const warn = earnedGone > 0 ? ` Your Earned total will drop by ${formatMoney(earnedGone)}.` : '';
+      if (!confirm(`Permanently delete ${plural(ids.length, 'completed job')}? This can't be undone.${warn}`)) return;
       mutations.current += 1;
       setError('');
       // Sending the ids means jobs finished on another device since the last refresh are left alone.
@@ -376,6 +392,16 @@ export default function JobsView() {
   const counts = { open: open.length, done: done.length, all: (jobs || []).length };
   const openMinutes = totalMinutes(open);
   const unestimated = open.filter((j) => !(j.estimated_minutes > 0)).length;
+  const scheduledIncome = totalIncome(open);
+  const unpriced = open.filter((j) => j.estimated_income === null || j.estimated_income === undefined).length;
+  const earnedIncome = totalIncome(done);
+  const now = new Date();
+  const earnedThisMonth = totalIncome(
+    done.filter((j) => {
+      const d = new Date(j.completed_at);
+      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+    }),
+  );
   const byPriority = Object.fromEntries(PRIORITIES.map((p) => [p, open.filter((j) => j.priority === p).length]));
 
   let emptyText = '';
@@ -390,9 +416,10 @@ export default function JobsView() {
     <div className="admin-page jobs-page">
       <h1>Jobs</h1>
       <p className="admin-lead">
-        Everything that still needs doing, with a time estimate and a priority. Type the job, pick a
-        client straight from your Clients list, tap a time and a priority, and hit Enter. Tick a job
-        off when it's finished.
+        Everything that still needs doing, with a time estimate, an income estimate and a priority.
+        Type the job, pick a client straight from your Clients list, add what you expect to make,
+        tap a time and a priority, and hit Enter. Tick a job off when it's finished and its income
+        moves from Scheduled to Earned.
       </p>
 
       {error && (
@@ -424,6 +451,24 @@ export default function JobsView() {
       ) : (
         <>
           <div className="jobs-summary">
+            <div className="jobs-sum-item jobs-sum-money">
+              <span className="jobs-sum-label">Scheduled income</span>
+              <span className="jobs-sum-num">{formatMoney(scheduledIncome) || '$0'}</span>
+              <span className="jobs-sum-sub">
+                {open.length === 0
+                  ? 'No open jobs'
+                  : unpriced > 0
+                    ? `${unpriced} of ${open.length} open without an amount`
+                    : 'From all open jobs'}
+              </span>
+            </div>
+            <div className="jobs-sum-item jobs-sum-money is-earned">
+              <span className="jobs-sum-label">Earned</span>
+              <span className="jobs-sum-num">{formatMoney(earnedIncome) || '$0'}</span>
+              <span className="jobs-sum-sub">
+                {done.length === 0 ? 'No completed jobs yet' : `${formatMoney(earnedThisMonth) || '$0'} this month`}
+              </span>
+            </div>
             <div className="jobs-sum-item">
               <span className="jobs-sum-label">Open jobs</span>
               <span className="jobs-sum-num">{open.length}</span>
@@ -476,13 +521,16 @@ export default function JobsView() {
 
           {sections.map((s) => {
             const mins = totalMinutes(s.items);
+            const money = totalIncome(s.items);
             return (
               <section key={s.key} className="jobs-section" data-p={s.p} aria-label={`${s.title} jobs`}>
                 <header className="jobs-section-head">
                   <span className="jobs-dot" aria-hidden="true" />
                   <h2>{s.title}</h2>
                   <span className="jobs-section-meta">
-                    {plural(s.items.length, 'job')}{mins > 0 ? ` · ${formatMinutes(mins)}` : ''}
+                    {plural(s.items.length, 'job')}
+                    {mins > 0 ? ` · ${formatMinutes(mins)}` : ''}
+                    {money > 0 ? ` · ${formatMoney(money)}` : ''}
                   </span>
                   {s.key === 'done' && (
                     <button type="button" className="admin-mini admin-mini-danger" disabled={clearing} onClick={clearDone}>
@@ -502,6 +550,7 @@ export default function JobsView() {
                       onTitle={(j, title) => updateJob(j.id, { title })}
                       onNotes={(j, notes) => updateJob(j.id, { notes: notes || null })}
                       onMinutes={(j, minutes) => updateJob(j.id, { estimated_minutes: minutes })}
+                      onIncome={(j, amount) => updateJob(j.id, { estimated_income: amount })}
                       onPriority={changePriority}
                       onClient={changeClient}
                       onDuplicate={duplicateJob}

@@ -697,7 +697,7 @@
 .jobs-add {
   display: grid; gap: 16px;
   grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr) auto;
-  grid-template-areas: "title client add" "time prio prio" "foot foot foot";
+  grid-template-areas: "title client add" "time time time" "income prio prio" "foot foot foot";
   align-items: end;
   background: var(--a-panel); border: 1px solid var(--a-line); border-top: 3px solid var(--a-accent);
   border-radius: var(--a-radius); padding: 20px 22px 14px; margin: 0 0 28px;
@@ -705,6 +705,7 @@
 .jobs-add-title  { grid-area: title; }
 .jobs-add-client { grid-area: client; }
 .jobs-add-time   { grid-area: time; align-self: start; }
+.jobs-add-income { grid-area: income; align-self: start; max-width: 220px; }
 .jobs-add-prio   { grid-area: prio; align-self: start; }
 .jobs-add-btn    { grid-area: add; }
 .jobs-add-foot   { grid-area: foot; margin: 0; min-height: 22px; font-size: 12.5px; color: var(--a-dim); }
@@ -807,6 +808,27 @@
 .jobs-set { min-height: 40px; padding: 0 14px; font-weight: 600; }
 .jobs-time-clear { align-self: flex-start; min-height: 36px; }
 
+/* Income ($) input, in the add bar and in the per-job popover */
+.jobs-income { display: flex; flex-direction: column; gap: 8px; }
+.jobs-money {
+  display: inline-flex; align-items: center; min-height: 48px; padding: 0 14px; border: 1px solid var(--a-line);
+  border-radius: 10px; background: var(--a-panel-2); color: var(--a-text);
+}
+.jobs-money:focus-within { outline: 2px solid var(--a-accent); outline-offset: 1px; border-color: transparent; }
+.jobs-money-sign { color: var(--a-faint); font-weight: 700; margin-right: 6px; }
+.jobs-money-input {
+  flex: 1; min-width: 0; width: 100%; border: 0; padding: 11px 0; background: transparent; color: inherit;
+  font: inherit; font-size: 15px; font-variant-numeric: tabular-nums;
+}
+.jobs-money-input:focus { outline: none; }
+.jobs-money-input::placeholder { color: var(--a-faint); }
+.jobs-money:has(.jobs-money-input[aria-invalid="true"]) { border-color: var(--a-danger); background: var(--a-danger-wash); }
+.jobs-income.is-pop { align-items: stretch; }
+.jobs-income.is-pop .jobs-time-chips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.jobs-income.is-pop .jobs-time-chip { min-width: 0; padding-left: 8px; padding-right: 8px; }
+.jobs-income.is-pop .jobs-money { flex: 1 1 110px; min-height: 40px; min-width: 0; border-radius: 999px; }
+.jobs-income.is-pop .jobs-money-input { padding: 6px 0; font-size: 13.5px; }
+
 /* Priority segmented buttons */
 .jobs-seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-width: 420px; }
 .jobs-seg-btn {
@@ -817,12 +839,16 @@
 .jobs-seg-btn.is-on { background: var(--pbg); border-color: var(--pc); color: var(--pc); font-weight: 700; box-shadow: inset 0 0 0 1px var(--pc); }
 
 /* ---------- Summary + toolbar ---------- */
-.jobs-summary { display: flex; flex-wrap: wrap; align-items: stretch; gap: 14px 0; margin: 0 0 20px; }
+/* Four numbers in a row (Scheduled | Earned | Open jobs | Time), priority counts underneath. */
+.jobs-summary { display: grid; grid-template-columns: repeat(4, minmax(0, auto)); justify-content: start; align-items: stretch; gap: 14px 0; margin: 0 0 20px; }
 .jobs-sum-item { display: flex; flex-direction: column; gap: 5px; padding: 2px 26px; border-left: 1px solid var(--a-line); min-width: 0; }
 .jobs-sum-item:first-child { border-left: 0; padding-left: 0; }
+.jobs-sum-prio { grid-column: 1 / -1; padding: 12px 0 0; border-left: 0; border-top: 1px solid var(--a-line); }
 .jobs-sum-label { font-size: 10.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--a-faint); }
 .jobs-sum-num { font-family: Archivo, sans-serif; font-size: 25px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
 .jobs-sum-sub { font-size: 12px; color: var(--a-dim); }
+.jobs-sum-money .jobs-sum-num { font-size: 28px; font-variant-numeric: tabular-nums; }
+.jobs-sum-money.is-earned .jobs-sum-num { color: var(--a-ok); }
 .jobs-sum-pills { display: flex; flex-wrap: wrap; gap: 6px; padding-top: 4px; }
 .jobs-count-pill {
   display: inline-flex; align-items: center; gap: 6px; padding: 3px 11px; border-radius: 999px;
@@ -908,6 +934,9 @@
 .jobs-chip-client svg { color: var(--a-accent-d); }
 .jobs-chip-ghost { background: transparent; border-style: dashed; color: var(--a-dim); font-weight: 500; }
 .jobs-chip-time { min-width: 84px; justify-content: center; }
+.jobs-chip-income { min-width: 84px; justify-content: center; font-variant-numeric: tabular-nums; }
+.jobs-chip-income:not(.jobs-chip-ghost) { background: #eef5e8; border-color: #cfe0c3; color: var(--a-ok); }
+.jobs-chip-income:not(.jobs-chip-ghost) svg { color: var(--a-ok); }
 @media (hover: hover) { .jobs-chip:not(:disabled):hover { border-color: #bcc7a4; } }
 
 .jobs-pill {
@@ -935,7 +964,7 @@
   box-shadow: 0 18px 40px -16px rgba(26, 32, 17, 0.4);
 }
 .jobs-chips .jobs-pop { left: auto; right: 0; }
-.jobs-pop-time { width: min(340px, 86vw); }
+.jobs-pop-time, .jobs-pop-income { width: min(340px, 86vw); }
 .jobs-pop-prio { width: min(320px, 86vw); padding: 8px; }
 .jobs-pop-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 8px; min-height: 28px; }
 .jobs-time.is-pop { flex-direction: column; align-items: stretch; }
@@ -948,7 +977,7 @@
 @media (max-width: 1280px) {
   .jobs-add {
     grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas: "title add" "client client" "time time" "prio prio" "foot foot";
+    grid-template-areas: "title add" "client client" "time time" "income income" "prio prio" "foot foot";
   }
   .jobs-add-client { max-width: 620px; }
 }
@@ -957,11 +986,14 @@
 @media (max-width: 700px) {
   .jobs-add {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "title" "client" "time" "prio" "add" "foot";
+    grid-template-areas: "title" "client" "time" "income" "prio" "add" "foot";
     gap: 18px; padding: 18px 16px 12px; margin-bottom: 24px;
   }
-  .jobs-input, .jobs-pick-input, .jobs-custom-input, .jobs-edit { font-size: 16px; }
-  .jobs-input { min-height: 52px; }
+  .jobs-input, .jobs-pick-input, .jobs-custom-input, .jobs-edit, .jobs-money-input { font-size: 16px; }
+  .jobs-input, .jobs-money { min-height: 52px; }
+  .jobs-add-income { max-width: none; }
+  .jobs-income.is-pop .jobs-money { min-height: 44px; }
+  .jobs-income.is-pop .jobs-money-input { font-size: 16px; }
   .jobs-pick-field { min-height: 52px; }
   .jobs-add-btn { width: 100%; min-height: 52px; font-size: 16px; }
   .jobs-time-chip { min-height: 44px; padding: 6px 16px; font-size: 14px; }
@@ -976,10 +1008,11 @@
   .jobs-add-client { max-width: none; }
   .jobs-pick-list { max-height: 46vh; }
 
-  .jobs-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 0; }
+  .jobs-summary { grid-template-columns: 1fr 1fr; gap: 16px 0; }
   .jobs-sum-item { padding: 2px 14px; }
-  .jobs-sum-item:first-child { padding-left: 0; }
-  .jobs-sum-prio { grid-column: 1 / -1; padding: 12px 0 0; border-left: 0; border-top: 1px solid var(--a-line); }
+  /* Left-hand column of each row: no divider, no indent. */
+  .jobs-sum-item:nth-child(odd) { padding-left: 0; border-left: 0; }
+  .jobs-sum-item.jobs-sum-prio { padding: 12px 0 0; }
   .jobs-toolbar { flex-direction: column; align-items: stretch; }
   .jobs-toolbar .seg { display: flex; }
   .jobs-toolbar .seg button { flex: 1; min-height: 42px; }
@@ -987,7 +1020,8 @@
 
   .jobs-row {
     grid-template-columns: auto minmax(0, 1fr) auto;
-    grid-template-areas: "check main main" ". chips actions";
+    /* Icons sit beside the title so income + time + priority chips fit on one line. */
+    grid-template-areas: "check main actions" ". chips chips";
     gap: 8px 8px; padding: 14px 0;
   }
   .jobs-check { align-self: start; }
@@ -995,7 +1029,7 @@
   .jobs-chips { justify-content: flex-start; flex-wrap: wrap; align-self: start; }
   .jobs-actions { align-self: start; }
   .jobs-chip, .jobs-pill { min-height: 40px; padding: 4px 14px; font-size: 13.5px; }
-  .jobs-chip-time { min-width: 0; }
+  .jobs-chip-time, .jobs-chip-income { min-width: 0; }
   .jobs-icon-btn { width: 42px; height: 42px; }
   .jobs-section-head .admin-mini { min-height: 40px; padding: 4px 12px; }
 
@@ -1007,7 +1041,7 @@
     position: static; flex: 1 1 100%; width: 100%; margin-top: 2px; box-shadow: none; background: var(--a-panel-2);
   }
   .jobs-pop-client .jobs-pick-pop { background: var(--a-panel); }
-  .jobs-chips .jobs-pop-time, .jobs-chips .jobs-pop-prio {
+  .jobs-chips .jobs-pop-time, .jobs-chips .jobs-pop-income, .jobs-chips .jobs-pop-prio {
     position: absolute; top: 100%; left: 0; right: 0; width: auto; margin-top: 4px;
   }
 

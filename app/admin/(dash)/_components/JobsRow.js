@@ -1,9 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { PRIORITIES, PRIORITY_LABELS, formatMinutes, formatMinutesShort } from '../../../../lib/jobs';
+import { PRIORITIES, PRIORITY_LABELS, formatMinutes, formatMinutesShort, formatMoney } from '../../../../lib/jobs';
 import JobsClientPicker from './JobsClientPicker';
 import JobsTimePicker from './JobsTimePicker';
+import JobsIncomePicker from './JobsIncomePicker';
 import { Icon } from './JobsIcons';
 
 // Click straight on text to edit it in place. Enter / blur saves, Escape cancels.
@@ -109,11 +110,12 @@ function usePopover() {
 
 export default function JobsRow({
   job, clients, clientsError, isNew,
-  onToggle, onTitle, onNotes, onMinutes, onPriority, onClient, onDuplicate, onDelete,
+  onToggle, onTitle, onNotes, onMinutes, onIncome, onPriority, onClient, onDuplicate, onDelete,
 }) {
   const locked = Boolean(job._pending);
   const clientPop = usePopover();
   const timePop = usePopover();
+  const incomePop = usePopover();
   const prioPop = usePopover();
   const [clientText, setClientText] = useState('');
   const [noteOpen, setNoteOpen] = useState(false);
@@ -124,12 +126,13 @@ export default function JobsRow({
 
   const hasClient = Boolean(job.client_name);
   const hasTime = job.estimated_minutes > 0;
+  const hasIncome = job.estimated_income !== null && job.estimated_income !== undefined;
   const cls = [
     'jobs-row',
     job.done && 'is-done',
     locked && 'is-pending',
     isNew && 'is-new',
-    (clientPop.open || timePop.open || prioPop.open) && 'has-pop',
+    (clientPop.open || timePop.open || incomePop.open || prioPop.open) && 'has-pop',
   ].filter(Boolean).join(' ');
 
   return (
@@ -227,6 +230,33 @@ export default function JobsRow({
       </div>
 
       <div className="jobs-chips">
+        <span className="jobs-pop-anchor" {...incomePop.wrapProps}>
+          <button
+            ref={incomePop.triggerRef}
+            type="button"
+            className={`jobs-chip jobs-chip-income ${hasIncome ? '' : 'jobs-chip-ghost'}`}
+            aria-haspopup="dialog"
+            aria-expanded={incomePop.open}
+            aria-label={hasIncome ? `Estimated income ${formatMoney(job.estimated_income)}. Change.` : 'Add estimated income'}
+            title={hasIncome ? 'Change estimated income' : 'Add estimated income'}
+            disabled={locked}
+            onClick={incomePop.toggle}
+          >
+            {Icon.dollar}
+            <span>{hasIncome ? formatMoney(job.estimated_income) : 'Income'}</span>
+          </button>
+          {incomePop.open && (
+            <div className="jobs-pop jobs-pop-income" role="dialog" aria-label="Estimated income">
+              <JobsIncomePicker
+                explicit
+                amount={hasIncome ? Number(job.estimated_income) : null}
+                onChange={(a) => onIncome(job, a)}
+                onDone={() => incomePop.close(true)}
+              />
+            </div>
+          )}
+        </span>
+
         <span className="jobs-pop-anchor" {...timePop.wrapProps}>
           <button
             ref={timePop.triggerRef}

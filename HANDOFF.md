@@ -74,6 +74,15 @@ This was a deliberate, explicit decision by the user after the very first versio
 
 Newest first.
 
+### 2026-11-11 — Estimated income on the admin Jobs page
+
+- **Asked:** an estimated income per job so the owner can see what they're making and what's scheduled.
+- **DB (applied to the live BeckYards Supabase):** `jobs.estimated_income numeric(10,2)` NULL, CHECK 0..1,000,000. Existing/blank rows stay NULL (= "no amount yet", not $0). Migration name `jobs_estimated_income`.
+- **UI (`/admin/jobs`):** quick-add bar has an "Estimated income" `$` box (cleared after every add, unlike time/priority); each job row has a green `$` chip that opens a popover with $50-$500 presets, a custom box + Set, and Clear. Summary strip now shows **Scheduled income** (all open jobs; "N of M open without an amount"), **Earned** (all completed jobs, plus "this month" by `completed_at`), Open jobs, Estimated time, then priority counts. Section headers also show each group's total. Ticking a job done moves its income from Scheduled to Earned; un-ticking moves it back.
+- **Caveat:** "Clear completed" permanently deletes finished jobs, which also lowers Earned. The confirm box states how much. Earned is only as complete as the jobs still on the list.
+- **Code:** `lib/jobs.js` (`parseMoney`, `formatMoney`, `totalIncome`, `INCOME_PRESETS`; totals are summed in cents so there's no float drift), `app/api/admin/jobs/route.js` (`cleanIncome` on POST/PATCH, reuses `parseMoney` so client and server agree; commas only as thousands separators, so "1,50" is rejected rather than read as $150), `_components/JobsIncomePicker.js` (new), `JobsRow.js`, `JobsQuickAdd.js` (won't submit while the box holds unreadable text), `JobsView.js`, `admin.css`.
+- **Reviewed/tested:** independent 4-lens review with adversarial verification found 5 real issues (summary-strip dividers misaligned, loose comma parsing, quick-add dropping/clobbering an amount in edge cases), all fixed. Verified in the browser at desktop and 375px phone width using a temporary mocked-API page (deleted; admin login was not used). DB constraint tested against negative and over-limit values.
+
 ### 2026-11-08 (later) — Fall 2027 aeration, Leaf Cleanup sign-up, Home button, About page faith content, link-scroll fix
 
 - **Link scroll fix (live, `9e6ceeb`):** clicking a link landed at the bottom of the next page. Cause: `globals.css` sets `scroll-behavior: smooth` and Next 16 no longer overrides it on route changes. Fix: `data-scroll-behavior="smooth"` on `<html>` in `app/layout.js`.

@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { requireAdminClient } from '../../../../lib/adminAuth';
-import { PRIORITIES, MAX_MINUTES, compareJobs } from '../../../../lib/jobs';
+import { PRIORITIES, MAX_MINUTES, MAX_INCOME, compareJobs, parseMoney } from '../../../../lib/jobs';
 
 export const dynamic = 'force-dynamic';
 
 const JOB_COLUMNS =
-  'id, title, client_id, client_name, address, estimated_minutes, priority, notes, done, completed_at, sort_order, created_at';
+  'id, title, client_id, client_name, address, estimated_minutes, estimated_income, priority, notes, done, completed_at, sort_order, created_at';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_TITLE = 200;
@@ -14,6 +14,7 @@ const MAX_ADDRESS = 500;
 const MAX_NOTES = 2000;
 
 const MINUTES_MESSAGE = `Estimated time must be a whole number of minutes between 1 and ${MAX_MINUTES}.`;
+const INCOME_MESSAGE = `Estimated income must be a dollar amount between $0 and $${MAX_INCOME.toLocaleString('en-US')}.`;
 const PRIORITY_MESSAGE = 'Priority must be High, Medium, or Low.';
 const NO_CLIENT_MESSAGE = 'That client no longer exists.';
 const NO_JOB_MESSAGE = 'That job no longer exists.';
@@ -56,6 +57,23 @@ function cleanMinutes(raw) {
   }
   if (!Number.isInteger(n) || n < 1 || n > MAX_MINUTES) return { error: MINUTES_MESSAGE };
   return { value: n };
+}
+
+// null / '' / undefined -> null (not set). Accepts a number or a "150" / "$1,200.50" string;
+// whole cents only. 0 is allowed (a free job).
+function cleanIncome(raw) {
+  if (raw === null || raw === undefined) return { value: null };
+  if (typeof raw === 'string') {
+    if (raw.trim() === '') return { value: null };
+    const n = parseMoney(raw);
+    return n === null ? { error: INCOME_MESSAGE } : { value: n };
+  }
+  if (typeof raw !== 'number') return { error: INCOME_MESSAGE };
+  if (!Number.isFinite(raw) || raw < 0 || raw > MAX_INCOME) return { error: INCOME_MESSAGE };
+  const cents = Math.round(raw * 100);
+  // More than two decimal places (e.g. 1.234) is rejected rather than silently rounded.
+  if (Math.abs(cents - raw * 100) > 1e-6) return { error: INCOME_MESSAGE };
+  return { value: cents / 100 };
 }
 
 function cleanPriority(raw) {
@@ -120,7 +138,7 @@ export async function GET() {
   return NextResponse.json({ items: sortJobs(data || []) });
 }
 
-// { title, client_id?, client_name?, address?, estimated_minutes?, priority?, notes? }
+// { title, client_id?, client_name?, address?, estimated_minutes?, estimated_income?, priority?, notes? }
 // With client_id, the client's name + address are copied onto the job unless the body supplies its own.
 export async function POST(request) {
   const { client: supabase, error: authError } = await requireAdminClient();
@@ -148,6 +166,9 @@ export async function POST(request) {
   const minutes = cleanMinutes(body.estimated_minutes);
   if (minutes.error) return fail(minutes.error);
 
+  const income = cleanIncome(body.estimated_income);
+  if (income.error) return fail(income.error);
+
   let priority = 'medium';
   if (body.priority !== null && body.priority !== undefined && body.priority !== '') {
     priority = cleanPriority(body.priority);
@@ -172,6 +193,7 @@ export async function POST(request) {
       client_name: snapshotName,
       address: snapshotAddress,
       estimated_minutes: minutes.value,
+      estimated_income: income.value,
       priority,
       notes: notes.value,
     }])
@@ -183,7 +205,7 @@ export async function POST(request) {
   return NextResponse.json({ item: data });
 }
 
-// { id, ...any of: title | client_id | client_name | address | estimated_minutes | priority | notes | done }
+// { id, ...any of: title | client_id | client_name | address | estimated_minutes | estimated_income | priority | notes | done }
 //   client_id null  -- unlinks the client; client_name / address stay unless sent too
 //   client_id <id>  -- links the client and re-copies name + address unless sent in the same request
 //   done            -- true stamps completed_at, false clears it
@@ -212,6 +234,12 @@ export async function PATCH(request) {
     const minutes = cleanMinutes(body.estimated_minutes);
     if (minutes.error) return fail(minutes.error);
     patch.estimated_minutes = minutes.value;
+  }
+
+  if ('estimated_income' in body) {
+    const income = cleanIncome(body.estimated_income);
+    if (income.error) return fail(income.error);
+    patch.estimated_income = income.value;
   }
 
   if ('priority' in body) {
