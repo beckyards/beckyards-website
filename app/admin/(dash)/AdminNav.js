@@ -82,8 +82,12 @@ const I = {
   ),
 };
 
+function isActive(href, pathname) {
+  return href === '/admin' ? pathname === '/admin' : pathname.startsWith(href);
+}
+
 function NavLink({ link, pathname }) {
-  const active = link.href === '/admin' ? pathname === '/admin' : pathname.startsWith(link.href);
+  const active = isActive(link.href, pathname);
   return (
     <a href={link.href} className={active ? 'is-active' : undefined} aria-current={active ? 'page' : undefined}>
       {I[link.icon]}
@@ -96,6 +100,22 @@ export default function AdminNav({ email }) {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+
+  // Which sections are expanded. The one holding the current page is always opened for you;
+  // the rest stay collapsed so the sidebar stays short.
+  const [expanded, setExpanded] = useState(() => new Set());
+  useEffect(() => {
+    const mine = SECTIONS.find((sec) => sec.items.some((l) => isActive(l.href, pathname)));
+    if (mine) setExpanded((prev) => (prev.has(mine.key) ? prev : new Set(prev).add(mine.key)));
+  }, [pathname]);
+
+  function toggle(key) {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  }
 
   // Close the drawer automatically whenever the page changes (i.e. after
   // tapping a nav link), so it doesn't stay open over the new page.
@@ -143,14 +163,38 @@ export default function AdminNav({ email }) {
         </div>
         <nav aria-label="Admin sections">
           <NavLink link={DASHBOARD_LINK} pathname={pathname} />
-          {SECTIONS.map((section) => (
-            <div key={section.key} className="admin-nav-group" role="group" aria-labelledby={`admin-nav-${section.key}`}>
-              <span className="admin-nav-label" id={`admin-nav-${section.key}`}>{section.title}</span>
-              {section.items.map((link) => (
-                <NavLink key={link.href} link={link} pathname={pathname} />
-              ))}
-            </div>
-          ))}
+          {SECTIONS.map((section) => {
+            // One page: no need for a folder, just link to it.
+            if (section.items.length === 1) {
+              return <NavLink key={section.key} link={section.items[0]} pathname={pathname} />;
+            }
+            const isOpen = expanded.has(section.key);
+            const holdsCurrent = section.items.some((l) => isActive(l.href, pathname));
+            return (
+              <div key={section.key} className={`admin-nav-group${isOpen ? ' is-open' : ''}`}>
+                <button
+                  type="button"
+                  className={`admin-nav-toggle${holdsCurrent ? ' has-current' : ''}`}
+                  aria-expanded={isOpen}
+                  aria-controls={`admin-nav-sub-${section.key}`}
+                  onClick={() => toggle(section.key)}
+                >
+                  {I[section.icon]}
+                  <span>{section.title}</span>
+                  <svg className="admin-nav-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </button>
+                {isOpen && (
+                  <div className="admin-nav-sub" id={`admin-nav-sub-${section.key}`}>
+                    {section.items.map((link) => (
+                      <NavLink key={link.href} link={link} pathname={pathname} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </nav>
         <div className="admin-nav-foot">
           <span className="admin-whoami">Signed in as</span>

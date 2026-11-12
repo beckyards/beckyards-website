@@ -70,15 +70,30 @@
 .admin-brand a { font-family: Archivo, sans-serif; font-weight: 800; font-size: 19px; color: #fff; letter-spacing: -0.01em; }
 .admin-brand span { font-size: 10.5px; color: #9a8f7c; letter-spacing: 0.22em; text-transform: uppercase; margin-top: 2px; }
 .admin-nav nav {
-  display: flex; flex-direction: column; gap: 2px;
+  display: flex; flex-direction: column; gap: 1px;
   flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
   margin: 0 -16px; padding: 0 16px; /* span the full sidebar so the active marker at the edge isn't clipped */
   scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.18) transparent;
 }
-.admin-nav-group { display: flex; flex-direction: column; gap: 0; margin-top: 11px; }
-.admin-nav-label {
-  padding: 0 11px 4px; font-size: 10.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #8f8474;
+.admin-nav-group { display: flex; flex-direction: column; }
+.admin-nav-toggle {
+  display: flex; align-items: center; gap: 11px; width: 100%; padding: 8px 11px; border: 0; border-radius: 10px;
+  background: transparent; color: #c9bfae; font: inherit; font-weight: 500; text-align: left; cursor: pointer;
+  transition: background .12s, color .12s;
 }
+.admin-nav-toggle > svg:first-child { width: 17px; height: 17px; flex: none; opacity: .8; }
+.admin-nav-toggle > span { flex: 1; min-width: 0; }
+.admin-nav-toggle:hover { background: rgba(255,255,255,.06); color: #fff; }
+.admin-nav-toggle.has-current { color: #fff; }
+.admin-nav-toggle.has-current > svg:first-child { color: #9ec25a; opacity: 1; }
+.admin-nav-chev { width: 14px; height: 14px; flex: none; opacity: .55; transition: transform .15s; }
+.admin-nav-group.is-open .admin-nav-chev { transform: rotate(180deg); }
+.admin-nav-toggle:focus-visible, .admin-nav nav a:focus-visible { outline: 2px solid #9ec25a; outline-offset: -2px; }
+/* The pages inside a section: indented under it with a thin guide line. */
+.admin-nav-sub { display: flex; flex-direction: column; gap: 1px; margin: 2px 0 4px 20px; padding-left: 6px; border-left: 1px solid rgba(255,255,255,.1); }
+.admin-nav-sub a { padding: 6px 10px; font-size: 13.5px; }
+.admin-nav-sub a svg { width: 15px; height: 15px; }
+.admin-nav-sub a.is-active::before { left: -7px; top: 6px; bottom: 6px; }
 .admin-nav nav a {
   display: flex; align-items: center; gap: 11px;
   padding: 7px 11px; border-radius: 10px; color: #c9bfae; font-weight: 500;
