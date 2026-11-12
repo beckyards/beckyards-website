@@ -40,7 +40,14 @@ export default function EditableCell({ value, placeholder, type = 'text', format
     <span
       className="admin-editable-text"
       title="Click to edit"
+      role="button"
+      tabIndex={disabled ? -1 : 0}
+      aria-disabled={disabled || undefined}
       onClick={() => !disabled && setEditing(true)}
+      onKeyDown={(e) => {
+        // Keyboard users: Enter or Space opens the editor, just like a click.
+        if (!disabled && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); setEditing(true); }
+      }}
     >
       {value ? value : <span className="admin-editable-placeholder">{placeholder}</span>}
     </span>

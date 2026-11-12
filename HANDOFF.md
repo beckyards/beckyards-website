@@ -75,6 +75,13 @@ This was a deliberate, explicit decision by the user after the very first versio
 
 Newest first.
 
+### 2026-11-12 (evening) — To-Do page (Clients & Jobs section)
+
+- **Asked:** "In the clients and jobs section add a running list of To-Do."
+- **What:** `/admin/todos` ("To-Do" in the sidebar's Clients & Jobs section and on the dashboard). A plain running list, deliberately separate from Jobs (Jobs = client work with time/priority/income; To-Do = things to remember). Type + Enter to add (new items go to the bottom), tick to finish, click an item to reword, trash icon to delete with a 7-second **Undo** (restores the item in its original position), a collapsible **Done (n)** section with **Clear completed** (confirm, permanent). Un-ticking sends an item to the bottom of the open list. Quietly refreshes when you come back to the tab. No drag-reordering yet (easy follow-up if wanted).
+- **DB (live Supabase, migration `todos_table`):** `todos(id, text 1–500 chars, done, completed_at, sort_order bigint default epoch-ms, created_at)`; RLS on, no policies (service role only). API: `/api/admin/todos` (GET/POST/PATCH/DELETE; POST also accepts `done` + `sort_order` so Undo can restore). Code: `TodosView.js`, `lib/todos.js`, `todos-*` styles in `admin.css`.
+- **Verified:** in the browser (add, order, tick, reword, delete + undo, un-tick, clear completed, reload persistence, 375px phone width, keyboard-only use) plus API input checks (empty / too long / wrong types / NUL character / bad ids all return 400/404). An independent 3-lens review with adversarial verification found 9 low/medium issues, all fixed: undo restores the original finish time (`POST` accepts `completed_at`); Clear completed deletes in batches of 100 and locks the rows while it runs; Undo/refresh race; a failed delete can't remove a later delete's Undo message; the error banner clears when a refresh recovers; keyboard focus moves to the next row after ticking/deleting. **`EditableCell` (shared with Clients and Mowing Routes) is now keyboard-accessible** (Tab to focus, Enter/Space to edit). All `ZZ TEST` rows removed; table is empty.
+
 ### 2026-11-12 (later) — Admin panel organized into sections
 
 - **Asked:** make the whole admin panel more organized (sign-up lists in their own section, image tools in theirs, etc.).

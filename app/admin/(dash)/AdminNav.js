@@ -74,6 +74,12 @@ const I = {
       <path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
     </svg>
   ),
+  todo: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="3.5 6.5 5.5 8.5 9 5" /><polyline points="3.5 12.5 5.5 14.5 9 11" /><polyline points="3.5 18.5 5.5 20.5 9 17" />
+      <line x1="13" y1="7" x2="21" y2="7" /><line x1="13" y1="13" x2="21" y2="13" /><line x1="13" y1="19" x2="21" y2="19" />
+    </svg>
+  ),
   jobs: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />

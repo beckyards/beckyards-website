@@ -1140,3 +1140,55 @@
   /* Long emails/addresses wrap inside the card instead of stretching the page. */
   .clients-table td { min-width: 0; overflow-wrap: anywhere; }
 }
+
+/* ---------- To-Do ---------- */
+.todos-add { display: flex; gap: 10px; margin: 0 0 18px; }
+.todos-input {
+  flex: 1; min-width: 0; min-height: 48px; padding: 11px 14px; border: 1px solid var(--a-line); border-radius: 10px;
+  font: inherit; font-size: 15px; background: var(--a-panel); color: var(--a-text);
+}
+.todos-input::placeholder { color: var(--a-faint); }
+.todos-input:focus { outline: 2px solid var(--a-accent); outline-offset: 1px; border-color: transparent; }
+.todos-add-btn { display: inline-flex; align-items: center; gap: 7px; min-height: 48px; padding: 0 22px; border-radius: 10px; white-space: nowrap; }
+.todos-add-btn svg { width: 16px; height: 16px; }
+.todos-count { margin: 0 0 8px; font-size: 12.5px; color: var(--a-dim); }
+.todos-empty {
+  margin: 0 0 22px; padding: 30px 16px; text-align: center; color: var(--a-dim);
+  border: 1px dashed var(--a-line); border-radius: 12px; background: var(--a-panel);
+}
+.todos-list { list-style: none; margin: 0 0 8px; padding: 0; border-top: 1px solid var(--a-line); }
+.todos-row { display: flex; align-items: center; gap: 12px; padding: 7px 4px 7px 0; border-bottom: 1px solid var(--a-line-soft); }
+.todos-row.is-pending .todos-text { opacity: 0.6; }
+.todos-check { flex: none; width: 42px; height: 42px; display: grid; place-items: center; padding: 0; border: 0; background: none; cursor: pointer; border-radius: 50%; -webkit-tap-highlight-color: transparent; }
+.todos-check[aria-disabled="true"], .todos-del[aria-disabled="true"] { cursor: default; }
+.todos-del[aria-disabled="true"] { opacity: .4; }
+.todos-check-dot {
+  width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--a-accent); display: grid; place-items: center;
+  color: #fff; background: transparent; transition: background .12s, border-color .12s;
+}
+.todos-check-dot svg { width: 15px; height: 15px; stroke-width: 3; opacity: 0; }
+.todos-check[aria-checked="true"] .todos-check-dot { background: var(--a-ok); border-color: var(--a-ok); }
+.todos-check[aria-checked="true"] .todos-check-dot svg { opacity: 1; }
+@media (hover: hover) { .todos-check:not([aria-disabled="true"]):hover .todos-check-dot { background: var(--a-accent-wash); } .todos-check[aria-checked="true"]:not([aria-disabled="true"]):hover .todos-check-dot { background: var(--a-ok); } }
+.todos-text { flex: 1; min-width: 0; font-size: 15px; line-height: 1.4; overflow-wrap: anywhere; }
+.todos-text .admin-editable-text { white-space: normal; }
+.todos-text .admin-inline-input { font-size: 15px; padding: 7px 10px; }
+.todos-row.is-done .todos-text { color: var(--a-dim); text-decoration: line-through; text-decoration-color: var(--a-faint); }
+.todos-del { flex: none; width: 40px; height: 40px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 10px; background: none; color: var(--a-faint); cursor: pointer; }
+.todos-del svg { width: 17px; height: 17px; }
+@media (hover: hover) { .todos-del:not([aria-disabled="true"]):hover { background: var(--a-danger-wash); color: var(--a-danger); } }
+.todos-done { margin-top: 26px; }
+.todos-done-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 8px; }
+.todos-done-toggle { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 4px; border: 0; background: none; font: inherit; font-size: 14px; font-weight: 700; color: var(--a-dim); cursor: pointer; }
+.todos-chev { width: 15px; height: 15px; transition: transform .15s; }
+.todos-chev.is-open { transform: rotate(90deg); }
+.todos-page :focus-visible { outline: 2px solid var(--a-accent); outline-offset: 2px; }
+@media (max-width: 700px) {
+  .todos-input { min-height: 52px; font-size: 16px; }
+  .todos-add-btn { min-height: 52px; }
+  .todos-text .admin-inline-input { font-size: 16px; }
+  .todos-del { width: 44px; height: 44px; }
+  .todos-done-head .admin-mini { min-height: 40px; padding: 4px 12px; }
+}
+@media (prefers-reduced-motion: reduce) { .todos-check-dot, .todos-chev { transition: none; } }
+.admin-editable-text:focus-visible { outline: 2px solid var(--a-accent); outline-offset: 2px; border-radius: 3px; }

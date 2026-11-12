@@ -30,7 +30,8 @@ export const SECTIONS = [
     title: 'Clients & Jobs',
     items: [
       { href: '/admin/clients', label: 'Clients', icon: 'clients', desc: 'Everyone you work for in one list: mowing, landscaping, one-time and yearly jobs.' },
-      { href: '/admin/jobs', label: 'Jobs', icon: 'jobs', desc: 'Your to-do list: jobs with a time estimate, priority and expected income, with Scheduled and Earned totals.' },
+      { href: '/admin/jobs', label: 'Jobs', icon: 'jobs', desc: 'Client work to do: jobs with a time estimate, priority and expected income, with Scheduled and Earned totals.' },
+      { href: '/admin/todos', label: 'To-Do', icon: 'todo', desc: 'A running list of things to remember. Add one, tick it off when it is done.' },
     ],
   },
   {
