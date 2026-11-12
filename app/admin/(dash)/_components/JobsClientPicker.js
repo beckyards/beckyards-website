@@ -2,9 +2,9 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Icon } from './JobsIcons';
+import { routesLabel } from '../../../../lib/clients';
 
 const MAX_OPTIONS = 8;
-const GROUP_LABELS = { A: 'Group A', B: 'Group B', misc: 'Misc' };
 
 function rank(client, q) {
   const name = (client.name || '').toLowerCase();
@@ -79,7 +79,7 @@ export default function JobsClientPicker({
   function choose(opt) {
     if (opt.kind === 'client') {
       const c = opt.client;
-      onPick({ clientId: c.id, name: c.name, address: c.address || null, group: c.route_group || null });
+      onPick({ clientId: c.id, name: c.name, address: c.address || null, group: null });
     } else {
       onPick({ clientId: null, name: opt.text, address: null, group: null });
     }
@@ -198,14 +198,16 @@ export default function JobsClientPicker({
                         <span className="jobs-opt-name">{opt.client.name}</span>
                         {opt.client.address && <span className="jobs-opt-addr">{opt.client.address}</span>}
                       </span>
-                      {GROUP_LABELS[opt.client.route_group] && (
-                        <span className="jobs-badge" data-g={opt.client.route_group}>{GROUP_LABELS[opt.client.route_group]}</span>
+                      {routesLabel(opt.client.routes) && (
+                        <span className="jobs-badge" data-g={opt.client.routes.length === 1 ? opt.client.routes[0] : undefined}>
+                          {routesLabel(opt.client.routes)}
+                        </span>
                       )}
                     </>
                   ) : (
                     <span className="jobs-opt-main">
                       <span className="jobs-opt-name">Use “{opt.text}”</span>
-                      <span className="jobs-opt-addr">Not on a route</span>
+                      <span className="jobs-opt-addr">Not in your Clients list</span>
                     </span>
                   )}
                 </li>

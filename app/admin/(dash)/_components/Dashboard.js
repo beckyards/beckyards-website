@@ -146,12 +146,16 @@ export default function Dashboard() {
           <h2>Leaf Cleanup →</h2>
           <p>Everyone who signed up for a fall leaf cleanup, with their notes and a spot to set their price.</p>
         </a>
-        <a className="admin-card" href="/admin/mowing-route">
+        <a className="admin-card" href="/admin/clients">
           <h2>Clients →</h2>
-          <p>Group A and Group B crews' client lists — drag to set the driving order.</p>
+          <p>Everyone you work for in one list: mowing, landscaping, one-time and yearly jobs.</p>
+        </a>
+        <a className="admin-card" href="/admin/mowing-route">
+          <h2>Mowing Routes →</h2>
+          <p>Route A and Route B: set each stop's price and cut height, and drag to set the driving order.</p>
         </a>
         <a className="admin-card" href="/admin/route-run">
-          <h2>Route →</h2>
+          <h2>Run Route →</h2>
           <p>Pick Route A or B, check clients off as you mow, and look back at completed routes.</p>
         </a>
         <a className="admin-card" href="/admin/jobs">

@@ -92,7 +92,8 @@
 }
 .admin-nav-foot button:hover { background: rgba(255,255,255,.07); color: #fff; }
 
-.admin-main { padding: 34px 40px 64px; max-width: 1140px; width: 100%; }
+/* min-width:0 lets a wide table scroll inside its own wrapper instead of stretching the whole page. */
+.admin-main { padding: 34px 40px 64px; max-width: 1140px; width: 100%; min-width: 0; }
 /* Enhance's before/after rows want more breathing room than the usual page. */
 .admin-main:has(.admin-page-wide) { max-width: 1360px; }
 
@@ -1052,4 +1053,64 @@
 @media (prefers-reduced-motion: reduce) {
   .jobs-row.is-new { animation: none; }
   .jobs-check-dot { transition: none; }
+}
+
+/* ---------- Clients (master list) ---------- */
+.clients-add {
+  background: var(--a-panel); border: 1px solid var(--a-line); border-top: 3px solid var(--a-accent);
+  border-radius: var(--a-radius); padding: 18px 20px; margin: 0 0 22px;
+}
+.clients-add-grid { display: grid; gap: 14px 14px; grid-template-columns: repeat(12, minmax(0, 1fr)); align-items: end; }
+.clients-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; grid-column: span 3; }
+.clients-field > span { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--a-faint); }
+.clients-field .admin-plain-input, .clients-field .admin-height-select { width: 100%; min-height: 40px; font-size: 14px; }
+.clients-f-name { grid-column: span 4; }
+.clients-f-address { grid-column: span 5; }
+.clients-f-notes { grid-column: span 9; }
+.clients-add-btn { grid-column: span 3; min-height: 40px; padding: 0 18px; white-space: nowrap; }
+.clients-toolbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0 0 18px; }
+.clients-toolbar .seg button { min-height: 36px; padding: 6px 14px; }
+.clients-count { opacity: 0.6; font-variant-numeric: tabular-nums; margin-left: 3px; }
+.clients-type-filter { min-height: 40px; }
+.clients-toolbar .admin-search { margin: 0; flex: 1 1 240px; max-width: 360px; min-height: 40px; }
+.clients-empty { margin: 0; padding: 28px 16px; text-align: center; color: var(--a-dim); }
+.clients-table td.clients-c-name { font-weight: 600; }
+.clients-table td.clients-c-wrap { white-space: normal; min-width: 150px; max-width: 280px; overflow-wrap: anywhere; }
+.clients-table td.clients-c-notes { min-width: 200px; color: var(--a-dim); }
+.clients-routes { display: inline-flex; gap: 6px; }
+.clients-route-btn {
+  min-width: 38px; min-height: 32px; padding: 3px 10px; border: 1px solid var(--a-line); border-radius: 999px;
+  background: var(--a-panel); color: var(--a-faint); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+}
+.clients-route-btn:disabled { opacity: 0.5; cursor: default; }
+.clients-route-btn.is-on[data-g="A"] { background: var(--a-accent-wash); border-color: #b9c98f; color: var(--a-accent-d); }
+.clients-route-btn.is-on[data-g="B"] { background: #e8eef3; border-color: #a9bccb; color: #3d566b; }
+@media (hover: hover) { .clients-route-btn:not(:disabled):hover { border-color: #bcc7a4; color: var(--a-text); } }
+
+@media (max-width: 1100px) {
+  .clients-field, .clients-f-name { grid-column: span 6; }
+  .clients-f-address, .clients-f-notes { grid-column: span 12; }
+  .clients-add-btn { grid-column: span 12; }
+}
+@media (max-width: 700px) {
+  .clients-add { padding: 16px 14px; }
+  .clients-field, .clients-f-name { grid-column: span 12; }
+  .clients-field .admin-plain-input, .clients-field .admin-height-select { min-height: 46px; font-size: 16px; }
+  .clients-add-btn { min-height: 48px; font-size: 16px; }
+  .clients-toolbar { flex-direction: column; align-items: stretch; }
+  .clients-toolbar .seg { display: flex; }
+  .clients-toolbar .seg button { flex: 1; min-height: 42px; padding: 6px 4px; font-size: 13px; }
+  .clients-toolbar .admin-search { max-width: none; flex: none; min-height: 46px; font-size: 16px; }
+  .clients-type-filter { min-height: 44px; font-size: 16px; }
+  .clients-table td.clients-c-wrap { max-width: none; min-width: 0; text-align: right; }
+}
+.routes-add-existing { min-height: 36px; max-width: min(320px, 100%); }
+@media (max-width: 700px) { .routes-add-existing { min-height: 44px; font-size: 16px; max-width: none; width: 100%; } }
+.clients-add-bar { margin: 0 0 14px; }
+.clients-add-toggle { min-height: 42px; padding: 0 20px; }
+.clients-add { margin-top: 0; }
+@media (max-width: 700px) { .clients-add-toggle { width: 100%; min-height: 48px; font-size: 16px; } }
+@media (max-width: 700px) {
+  /* Long emails/addresses wrap inside the card instead of stretching the page. */
+  .clients-table td { min-width: 0; overflow-wrap: anywhere; }
 }

@@ -104,7 +104,7 @@ export default function RouteRunView() {
       if (!res.ok) { setError(d.error || 'Could not complete the route.'); return; }
       // The just-finished run is now locked into history; starting the same
       // group again immediately snapshots a fresh, unchecked route from
-      // whatever's currently in Clients.
+      // whatever's currently on the Mowing Routes page.
       await startRoute(group);
     } finally {
       setCompleting(false);
@@ -296,7 +296,7 @@ export default function RouteRunView() {
             {completing ? 'Completing…' : `Complete Route ${run.route_group}`}
           </button>
           <p className="admin-lead" style={{ marginTop: 8, fontSize: 12.5 }}>
-            Saves this run to History and resets Route {run.route_group} fresh from Clients.
+            Saves this run to History and resets Route {run.route_group} fresh from Mowing Routes.
           </p>
         </div>
       )}

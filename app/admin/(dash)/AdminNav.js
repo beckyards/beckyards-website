@@ -57,6 +57,12 @@ const I = {
       <path d="M5 19c2-4 5-7 9-9" />
     </svg>
   ),
+  clients: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" /><circle cx="10" cy="7" r="4" />
+      <path d="M21 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  ),
   mowing: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="3" /><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8" />
@@ -81,8 +87,9 @@ const LINKS = [
   { href: '/admin/messages', label: 'Messages', icon: I.messages },
   { href: '/admin/aeration', label: 'Aeration List', icon: I.aeration },
   { href: '/admin/leaf-cleanup', label: 'Leaf Cleanup', icon: I.leaf },
-  { href: '/admin/mowing-route', label: 'Clients', icon: I.mowing },
-  { href: '/admin/route-run', label: 'Route', icon: I.route },
+  { href: '/admin/clients', label: 'Clients', icon: I.clients },
+  { href: '/admin/mowing-route', label: 'Mowing Routes', icon: I.mowing },
+  { href: '/admin/route-run', label: 'Run Route', icon: I.route },
   { href: '/admin/jobs', label: 'Jobs', icon: I.jobs },
   { href: '/admin/images', label: 'Images', icon: I.images },
   { href: '/admin/enhance', label: 'Enhance', icon: I.enhance },

@@ -91,7 +91,7 @@ export default function JobsView() {
   const loadAll = useCallback(async (silent) => {
     const startedAt = mutations.current;
     lastLoad.current = Date.now();
-    const [j, c] = await Promise.allSettled([getJson('/api/admin/jobs'), getJson('/api/admin/mowing-route')]);
+    const [j, c] = await Promise.allSettled([getJson('/api/admin/jobs'), getJson('/api/admin/clients')]);
 
     if (j.status === 'fulfilled') {
       const items = Array.isArray(j.value.items) ? j.value.items : [];

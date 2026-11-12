@@ -94,7 +94,7 @@ async function lookupClient(supabase, clientId) {
   if (!UUID_RE.test(clientId)) return { error: fail(NO_CLIENT_MESSAGE) };
 
   const { data, error } = await supabase
-    .from('mowing_clients')
+    .from('clients')
     .select('id, name, address')
     .eq('id', clientId)
     .maybeSingle();

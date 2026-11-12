@@ -1,8 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Panel, Skeleton } from './ui';
+import EditableCell from './EditableCell';
 import { formatPhoneInput } from '../../../../lib/phone';
+import { ROUTES } from '../../../../lib/clients';
 
 const HEIGHT_OPTIONS = Array.from({ length: 13 }, (_, i) => Math.round((2 + i * 0.25) * 100) / 100);
 const PAYMENT_TYPES = ['Venmo', 'Cash', 'Check', 'Bill'];
@@ -15,53 +17,9 @@ function money(n) {
   return n.toLocaleString(undefined, { style: 'currency', currency: 'USD' });
 }
 
-// Click straight on a name, phone, address, or frequency to edit it in place.
-// Saves on blur (or Enter); Escape cancels without saving.
-function EditableCell({ value, placeholder, type = 'text', format, disabled, onSave }) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(value || '');
+const BLANK_ADD_FORM = { name: '', address: '', phone: '', price: '', mowing_height: '3', payment_type: '' };
 
-  useEffect(() => {
-    if (!editing) setDraft(value || '');
-  }, [value, editing]);
-
-  function commit() {
-    setEditing(false);
-    const next = draft.trim();
-    if (next !== (value || '')) onSave(next);
-  }
-
-  if (editing) {
-    return (
-      <input
-        autoFocus
-        className="admin-inline-input"
-        type={type}
-        value={draft}
-        onChange={(e) => setDraft(format ? format(e.target.value) : e.target.value)}
-        onBlur={commit}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') e.currentTarget.blur();
-          if (e.key === 'Escape') { setDraft(value || ''); setEditing(false); }
-        }}
-      />
-    );
-  }
-
-  return (
-    <span
-      className="admin-editable-text"
-      title="Click to edit"
-      onClick={() => !disabled && setEditing(true)}
-    >
-      {value ? value : <span className="admin-editable-placeholder">{placeholder}</span>}
-    </span>
-  );
-}
-
-const BLANK_ADD_FORM = { name: '', address: '', phone: '', frequency: '', price: '', mowing_height: '3', payment_type: '' };
-
-function AddClientRow({ onAdd, showFrequency, dropProps }) {
+function AddClientRow({ onAdd, dropProps }) {
   const [form, setForm] = useState(BLANK_ADD_FORM);
   const [busy, setBusy] = useState(false);
 
@@ -78,7 +36,6 @@ function AddClientRow({ onAdd, showFrequency, dropProps }) {
         name: form.name.trim(),
         address: form.address.trim() || null,
         phone: form.phone.trim() || null,
-        frequency: form.frequency.trim() || null,
         price: form.price === '' ? null : Number(form.price),
         mowing_height: Number(form.mowing_height),
         payment_type: form.payment_type || null,
@@ -95,7 +52,7 @@ function AddClientRow({ onAdd, showFrequency, dropProps }) {
       <td data-label="Name">
         <input
           className="admin-plain-input"
-          placeholder="+ Name"
+          placeholder="+ New client name"
           value={form.name}
           disabled={busy}
           onChange={(e) => set('name', e.target.value)}
@@ -120,17 +77,6 @@ function AddClientRow({ onAdd, showFrequency, dropProps }) {
           onChange={(e) => set('phone', formatPhoneInput(e.target.value))}
         />
       </td>
-      {showFrequency && (
-        <td data-label="Frequency">
-          <input
-            className="admin-plain-input"
-            placeholder="e.g. Once a month"
-            value={form.frequency}
-            disabled={busy}
-            onChange={(e) => set('frequency', e.target.value)}
-          />
-        </td>
-      )}
       <td data-label="Mow height">
         <select
           className="admin-height-select"
@@ -179,13 +125,11 @@ function AddClientRow({ onAdd, showFrequency, dropProps }) {
   );
 }
 
-// label: what's shown in the title ("A", "B", "Misc"). groupKey: the actual
-// route_group value ("A", "B", "misc") used for filtering and API calls.
+// One route (A or B): its stops in driving order.
 function RouteGroup({
-  label, groupKey, items, busyId,
-  onSaveField, onSavePrice, onSaveHeight, onSavePayment, onRemove, onAdd,
-  onDuplicate, duplicateTitle,
-  onMoveTo, showFrequency,
+  label, items, busyId, existingClients,
+  onSaveField, onSavePrice, onSaveHeight, onSavePayment, onTakeOff, onAdd, onAddExisting,
+  onCopy, copyTitle,
   dragInfo, onRowDragStart, onRowDrop, onDragEndGlobal,
 }) {
   const [dragIndex, setDragIndex] = useState(null);
@@ -198,11 +142,30 @@ function RouteGroup({
 
   const total = items.reduce((sum, i) => sum + (i.price != null ? Number(i.price) : 0), 0);
   const isDropTarget = dragInfo != null;
-  const labelColSpan = showFrequency ? 7 : 6;
-  const title = groupKey === 'misc' ? 'Misc / Occasional Clients' : `Group ${label}`;
+
+  // Clients who aren't on this route yet.
+  const onThisRoute = new Set(items.map((i) => i.client_id).filter(Boolean));
+  const eligible = (existingClients || []).filter((c) => !onThisRoute.has(c.id));
 
   return (
-    <Panel title={title} meta={`${items.length} client${items.length === 1 ? '' : 's'}`}>
+    <Panel
+      title={`Route ${label}`}
+      meta={`${items.length} client${items.length === 1 ? '' : 's'}`}
+      actions={
+        <select
+          className="admin-height-select routes-add-existing"
+          aria-label={`Add an existing client to Route ${label}`}
+          value=""
+          disabled={eligible.length === 0}
+          onChange={(e) => { if (e.target.value) onAddExisting(e.target.value); }}
+        >
+          <option value="">{eligible.length ? '+ Add an existing client…' : 'Everyone is on this route'}</option>
+          {eligible.map((c) => (
+            <option key={c.id} value={c.id}>{c.name}{c.address ? ` — ${c.address}` : ''}</option>
+          ))}
+        </select>
+      }
+    >
       <div className="admin-table-wrap">
         <table className="admin-table">
           <thead>
@@ -211,7 +174,6 @@ function RouteGroup({
               <th>Name</th>
               <th>Address</th>
               <th>Phone</th>
-              {showFrequency && <th>Frequency</th>}
               <th>Mow height</th>
               <th>Payment</th>
               <th>Price</th>
@@ -224,7 +186,7 @@ function RouteGroup({
                 key={item.id}
                 className={
                   (dragIndex === index ? 'is-dragging ' : '') +
-                  (overIndex === index && !(dragInfo?.group === groupKey && dragIndex === index) ? 'is-drag-over' : '')
+                  (overIndex === index && dragIndex !== index ? 'is-drag-over' : '')
                 }
                 draggable
                 onDragStart={() => { setDragIndex(index); onRowDragStart(index); }}
@@ -238,7 +200,7 @@ function RouteGroup({
                 onDragEnd={() => { setDragIndex(null); setOverIndex(null); onDragEndGlobal(); }}
               >
                 <td>
-                  <span className="admin-drag-handle" title="Drag to reorder or move" aria-hidden="true">⠿</span>
+                  <span className="admin-drag-handle" title="Drag to reorder" aria-hidden="true">⠿</span>
                 </td>
                 <td data-label="Name">
                   <EditableCell
@@ -266,16 +228,6 @@ function RouteGroup({
                     onSave={(v) => onSaveField(item, 'phone', v)}
                   />
                 </td>
-                {showFrequency && (
-                  <td data-label="Frequency">
-                    <EditableCell
-                      value={item.frequency}
-                      placeholder="+ Add frequency"
-                      disabled={busyId === item.id}
-                      onSave={(v) => onSaveField(item, 'frequency', v)}
-                    />
-                  </td>
-                )}
                 <td data-label="Mow height">
                   <select
                     className="admin-height-select"
@@ -312,21 +264,31 @@ function RouteGroup({
                       value={draftFor(item)}
                       disabled={busyId === item.id}
                       onChange={(e) => setDrafts((prev) => ({ ...prev, [item.id]: e.target.value }))}
-                      onBlur={() => onSavePrice(item, draftFor(item))}
+                      onBlur={() => {
+                        // Once the save has been tried, show what's really stored (the new price,
+                        // or the old one if it was rejected) rather than the typed text.
+                        Promise.resolve(onSavePrice(item, draftFor(item))).finally(() => {
+                          setDrafts((prev) => {
+                            const next = { ...prev };
+                            delete next[item.id];
+                            return next;
+                          });
+                        });
+                      }}
                       onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
                     />
                   </div>
                 </td>
                 <td>
                   <div className="admin-row-actions">
-                    {onDuplicate && (
+                    {onCopy && item.client_id && (
                       <button
                         type="button"
                         className="admin-mini admin-icon-btn"
-                        title={duplicateTitle}
-                        aria-label={duplicateTitle}
+                        title={copyTitle}
+                        aria-label={`${copyTitle}: ${item.name}`}
                         disabled={busyId === item.id}
-                        onClick={() => onDuplicate(item)}
+                        onClick={() => onCopy(item)}
                       >
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <rect x="9" y="9" width="12" height="12" rx="2" />
@@ -334,35 +296,14 @@ function RouteGroup({
                         </svg>
                       </button>
                     )}
-                    {onMoveTo && (
-                      <>
-                        <button
-                          type="button"
-                          className="admin-mini admin-move-btn"
-                          title="Put on Group A"
-                          disabled={busyId === item.id}
-                          onClick={() => onMoveTo(item, 'A')}
-                        >
-                          A
-                        </button>
-                        <button
-                          type="button"
-                          className="admin-mini admin-move-btn"
-                          title="Put on Group B"
-                          disabled={busyId === item.id}
-                          onClick={() => onMoveTo(item, 'B')}
-                        >
-                          B
-                        </button>
-                      </>
-                    )}
                     <button
                       type="button"
-                      className="admin-mini admin-mini-danger"
+                      className="admin-mini"
+                      title={`Take ${item.name} off Route ${item.route_group} (they stay in your Clients list)`}
                       disabled={busyId === item.id}
-                      onClick={() => onRemove(item)}
+                      onClick={() => onTakeOff(item)}
                     >
-                      Delete
+                      Take off
                     </button>
                   </div>
                 </td>
@@ -370,7 +311,6 @@ function RouteGroup({
             ))}
             <AddClientRow
               onAdd={onAdd}
-              showFrequency={showFrequency}
               dropProps={{
                 className: overIndex === items.length && isDropTarget ? 'is-drag-over' : '',
                 onDragOver: (e) => { e.preventDefault(); if (isDropTarget && overIndex !== items.length) setOverIndex(items.length); },
@@ -380,52 +320,75 @@ function RouteGroup({
           </tbody>
           <tfoot>
             <tr>
-              <td colSpan={labelColSpan} className="admin-table-total-label">Total for {groupKey === 'misc' ? 'Misc' : `Group ${label}`}</td>
+              <td colSpan={6} className="admin-table-total-label">Total for Route {label}</td>
               <td colSpan={2} className="admin-table-total-value">{money(total)}</td>
             </tr>
           </tfoot>
         </table>
       </div>
-      <p className="admin-route-count">{items.length} client{items.length === 1 ? '' : 's'} on this {groupKey === 'misc' ? 'list' : 'route'}.</p>
+      <p className="admin-route-count">{items.length} client{items.length === 1 ? '' : 's'} on this route.</p>
     </Panel>
   );
 }
 
 export default function MowingRouteView() {
-  const [items, setItems] = useState(null);
+  const [items, setItems] = useState(null); // route stops
+  const [clients, setClients] = useState([]); // master list, for "add an existing client"
   const [error, setError] = useState('');
   const [busyId, setBusyId] = useState(null);
-  const [showMisc, setShowMisc] = useState(false);
-  const [drag, setDrag] = useState(null); // { group, index } -- group is a route_group key
+  const [drag, setDrag] = useState(null); // { group, index }
+  const pendingAdds = useRef(new Set()); // "A:<clientId>" adds currently in flight
 
-  const load = useCallback(() => {
-    setError('');
+  const loadClients = useCallback(() => {
+    fetch('/api/admin/clients')
+      .then((r) => r.json())
+      .then((d) => { if (Array.isArray(d.items)) setClients(d.items); })
+      .catch(() => {});
+  }, []);
+
+  // keepError: a reload after a failed save must not wipe the message explaining why.
+  const load = useCallback((keepError) => {
+    if (!keepError) setError('');
     fetch('/api/admin/mowing-route')
       .then((r) => r.json())
       .then((d) => {
         if (d.error) setError(d.error);
         else setItems(d.items);
       })
-      .catch(() => setError('Could not load the route.'));
-  }, []);
+      .catch(() => setError('Could not load the routes.'));
+    loadClients();
+  }, [loadClients]);
 
   useEffect(() => { load(); }, [load]);
 
-  async function saveField(item, field, value) {
+  async function patchStop(item, fields, failMessage) {
     setBusyId(item.id);
     setError('');
     try {
       const res = await fetch('/api/admin/mowing-route', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: item.id, [field]: value }),
+        body: JSON.stringify({ id: item.id, ...fields }),
       });
       const d = await res.json().catch(() => ({}));
-      if (!res.ok) { setError(d.error || 'Could not save that.'); return; }
-      setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, [field]: value || null } : i)));
+      if (!res.ok) { setError(d.error || failMessage); return false; }
+      return true;
+    } catch {
+      setError(failMessage);
+      return false;
     } finally {
       setBusyId(null);
     }
+  }
+
+  // Name / phone / address belong to the client, so they change on every route that client is on.
+  async function saveField(item, field, value) {
+    const ok = await patchStop(item, { [field]: value }, 'Could not save that.');
+    if (!ok) return;
+    setItems((prev) => prev.map((i) => (
+      i.id === item.id || (item.client_id && i.client_id === item.client_id) ? { ...i, [field]: value || null } : i
+    )));
+    if (field === 'name' || field === 'address') loadClients();
   }
 
   async function savePrice(item, raw) {
@@ -435,53 +398,20 @@ export default function MowingRouteView() {
       return;
     }
     if (next === item.price) return;
-    setBusyId(item.id);
-    setError('');
-    try {
-      const res = await fetch('/api/admin/mowing-route', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: item.id, price: next }),
-      });
-      const d = await res.json().catch(() => ({}));
-      if (!res.ok) { setError(d.error || 'Could not save the price.'); return; }
+    if (await patchStop(item, { price: next }, 'Could not save the price.')) {
       setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, price: next } : i)));
-    } finally {
-      setBusyId(null);
     }
   }
 
   async function saveHeight(item, height) {
-    setBusyId(item.id);
-    setError('');
-    try {
-      const res = await fetch('/api/admin/mowing-route', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: item.id, mowing_height: height }),
-      });
-      const d = await res.json().catch(() => ({}));
-      if (!res.ok) { setError(d.error || 'Could not save the mowing height.'); return; }
+    if (await patchStop(item, { mowing_height: height }, 'Could not save the mowing height.')) {
       setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, mowing_height: height } : i)));
-    } finally {
-      setBusyId(null);
     }
   }
 
   async function savePayment(item, paymentType) {
-    setBusyId(item.id);
-    setError('');
-    try {
-      const res = await fetch('/api/admin/mowing-route', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: item.id, payment_type: paymentType }),
-      });
-      const d = await res.json().catch(() => ({}));
-      if (!res.ok) { setError(d.error || 'Could not save the payment type.'); return; }
+    if (await patchStop(item, { payment_type: paymentType }, 'Could not save the payment type.')) {
       setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, payment_type: paymentType } : i)));
-    } finally {
-      setBusyId(null);
     }
   }
 
@@ -496,11 +426,11 @@ export default function MowingRouteView() {
       const d = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError(d.error || 'Could not save the new order.');
-        load();
+        load(true);
       }
     } catch {
       setError('Could not save the new order.');
-      load();
+      load(true);
     }
   }
 
@@ -515,9 +445,11 @@ export default function MowingRouteView() {
     persistOrder(group, reorderedGroupItems);
   }
 
-  async function remove(item) {
-    if (!confirm(`Remove ${item.name} from the route? This cannot be undone.`)) return;
+  // Takes the client off this route only. They stay in the Clients list (and on their other route).
+  async function takeOffRoute(item) {
+    if (!confirm(`Take ${item.name} off Route ${item.route_group}? They stay in your Clients list.`)) return;
     setBusyId(item.id);
+    setError('');
     try {
       const res = await fetch('/api/admin/mowing-route', {
         method: 'DELETE',
@@ -525,54 +457,24 @@ export default function MowingRouteView() {
         body: JSON.stringify({ id: item.id }),
       });
       const d = await res.json().catch(() => ({}));
-      if (!res.ok) { setError(d.error || 'Delete failed.'); return; }
+      if (!res.ok) { setError(d.error || 'Could not take them off the route.'); return; }
       setItems((prev) => prev.filter((i) => i.id !== item.id));
+      loadClients();
+    } catch {
+      setError('Could not take them off the route. Check your connection and try again.');
     } finally {
       setBusyId(null);
     }
   }
 
-  async function duplicateToGroup(item, targetGroup) {
-    return add(targetGroup, {
-      name: item.name,
-      address: item.address,
-      phone: item.phone,
-      price: item.price,
-      mowing_height: item.mowing_height,
-      payment_type: item.payment_type,
-    });
-  }
-
-  // Moves an existing client to a different group (used by both the Misc
-  // "A" / "B" buttons and cross-section drag-and-drop). targetIndex places it
-  // within the target group's current order; omit to append at the end.
-  async function moveToGroup(item, targetGroup, targetIndex) {
-    setBusyId(item.id);
-    setError('');
-    try {
-      const res = await fetch('/api/admin/mowing-route', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: item.id, route_group: targetGroup }),
-      });
-      const d = await res.json().catch(() => ({}));
-      if (!res.ok) { setError(d.error || 'Could not move that client.'); return; }
-
-      const updatedItem = { ...item, route_group: targetGroup };
-      const withoutItem = (items || []).filter((i) => i.id !== item.id);
-      const targetItems = withoutItem.filter((i) => i.route_group === targetGroup);
-      const otherItems = withoutItem.filter((i) => i.route_group !== targetGroup);
-      const insertAt = targetIndex == null ? targetItems.length : Math.min(Math.max(targetIndex, 0), targetItems.length);
-      targetItems.splice(insertAt, 0, updatedItem);
-
-      setItems([...otherItems, ...targetItems]);
-      persistOrder(targetGroup, targetItems);
-    } finally {
-      setBusyId(null);
-    }
-  }
-
+  // fields: either a brand-new client's details, or { client_id } for an existing one.
   async function add(group, fields) {
+    // A second tap on the same "add this client to this route" while the first is in flight does nothing.
+    const key = fields.client_id ? `${group}:${fields.client_id}` : null;
+    if (key) {
+      if (pendingAdds.current.has(key)) return false;
+      pendingAdds.current.add(key);
+    }
     setError('');
     try {
       const res = await fetch('/api/admin/mowing-route', {
@@ -581,44 +483,52 @@ export default function MowingRouteView() {
         body: JSON.stringify({ ...fields, route_group: group }),
       });
       const d = await res.json().catch(() => ({}));
-      if (!res.ok) { setError(d.error || 'Could not add that client.'); return false; }
+      if (!res.ok) {
+        setError(d.error || 'Could not add that client.');
+        if (res.status === 400 && /already on Route/.test(d.error || '')) load(true); // we were out of date; resync
+        return false;
+      }
       setItems((prev) => [...(prev || []), d.item]);
+      loadClients();
       return true;
     } catch {
       setError('Could not add that client.');
       return false;
+    } finally {
+      if (key) pendingAdds.current.delete(key);
     }
+  }
+
+  // Put the same client on the other route too, with the same price / height / payment.
+  function copyToRoute(item, targetGroup) {
+    return add(targetGroup, {
+      client_id: item.client_id,
+      price: item.price,
+      mowing_height: item.mowing_height,
+      payment_type: item.payment_type,
+    });
   }
 
   function handleRowDrop(targetGroup, targetIndex) {
     if (!drag || !items) { setDrag(null); return; }
-    if (drag.group === targetGroup) {
-      if (drag.index !== targetIndex) {
-        const groupItems = items.filter((i) => i.route_group === targetGroup);
-        const reordered = [...groupItems];
-        const [moved] = reordered.splice(drag.index, 1);
-        reordered.splice(targetIndex, 0, moved);
-        reorderGroup(targetGroup, reordered);
-      }
-    } else if (drag.group === 'misc' || targetGroup === 'misc') {
-      const sourceItems = items.filter((i) => i.route_group === drag.group);
-      const movedItem = sourceItems[drag.index];
-      if (movedItem) moveToGroup(movedItem, targetGroup, targetIndex);
+    if (drag.group === targetGroup && drag.index !== targetIndex) {
+      const groupItems = items.filter((i) => i.route_group === targetGroup);
+      const reordered = [...groupItems];
+      const [moved] = reordered.splice(drag.index, 1);
+      reordered.splice(Math.min(targetIndex, reordered.length), 0, moved);
+      reorderGroup(targetGroup, reordered);
     }
     setDrag(null);
   }
 
-  const miscCount = items ? items.filter((i) => i.route_group === 'misc').length : 0;
-
   return (
     <div className="admin-page">
-      <h1>Clients</h1>
+      <h1>Mowing Routes</h1>
       <p className="admin-lead">
-        Your two mowing crews' routes. Add clients to either group, click any name, address, or
-        phone to edit it, set the cut height, payment type, and price, and drag a row by its
-        handle to reorder the route however you drive it. Occasional clients (one-time mows,
-        every-few-weeks, etc.) live in Misc — drag them into Group A or B, or use the A / B
-        buttons, whenever they're on the schedule.
+        Your two mowing routes. Set the cut height, payment type and price for each stop, and drag
+        a row by its handle to put the route in the order you drive it. A client can be on both
+        routes. Everyone you work for is listed once on the Clients page, so use the dropdown at
+        the top of a route to add someone who's already there.
       </p>
 
       {error && <p className="admin-error">{error}</p>}
@@ -627,70 +537,34 @@ export default function MowingRouteView() {
         <><Skeleton h={200} style={{ marginBottom: 16 }} /><Skeleton h={200} /></>
       ) : (
         <>
-          <RouteGroup
-            label="A"
-            groupKey="A"
-            items={items.filter((i) => i.route_group === 'A')}
-            busyId={busyId}
-            onSaveField={saveField}
-            onSavePrice={savePrice}
-            onSaveHeight={saveHeight}
-            onSavePayment={savePayment}
-            onRemove={remove}
-            onAdd={(fields) => add('A', fields)}
-            onDuplicate={(item) => duplicateToGroup(item, 'B')}
-            duplicateTitle="Copy to Group B"
-            dragInfo={drag}
-            onRowDragStart={(index) => setDrag({ group: 'A', index })}
-            onRowDrop={(index) => handleRowDrop('A', index)}
-            onDragEndGlobal={() => setDrag(null)}
-          />
-          <div style={{ height: 20 }} />
-          <RouteGroup
-            label="B"
-            groupKey="B"
-            items={items.filter((i) => i.route_group === 'B')}
-            busyId={busyId}
-            onSaveField={saveField}
-            onSavePrice={savePrice}
-            onSaveHeight={saveHeight}
-            onSavePayment={savePayment}
-            onRemove={remove}
-            onAdd={(fields) => add('B', fields)}
-            dragInfo={drag}
-            onRowDragStart={(index) => setDrag({ group: 'B', index })}
-            onRowDrop={(index) => handleRowDrop('B', index)}
-            onDragEndGlobal={() => setDrag(null)}
-          />
-
-          <div style={{ height: 20 }} />
-          <button type="button" className="admin-mini" onClick={() => setShowMisc((v) => !v)}>
-            {showMisc ? 'Hide' : 'Show'} Misc / Occasional Clients ({miscCount})
-          </button>
-
-          {showMisc && (
-            <>
-              <div style={{ height: 12 }} />
-              <RouteGroup
-                label="Misc"
-                groupKey="misc"
-                items={items.filter((i) => i.route_group === 'misc')}
-                busyId={busyId}
-                onSaveField={saveField}
-                onSavePrice={savePrice}
-                onSaveHeight={saveHeight}
-                onSavePayment={savePayment}
-                onRemove={remove}
-                onAdd={(fields) => add('misc', fields)}
-                onMoveTo={(item, targetGroup) => moveToGroup(item, targetGroup)}
-                showFrequency
-                dragInfo={drag}
-                onRowDragStart={(index) => setDrag({ group: 'misc', index })}
-                onRowDrop={(index) => handleRowDrop('misc', index)}
-                onDragEndGlobal={() => setDrag(null)}
-              />
-            </>
-          )}
+          {ROUTES.map((g, n) => {
+            const other = g === 'A' ? 'B' : 'A';
+            const otherClientIds = new Set(items.filter((i) => i.route_group === other).map((i) => i.client_id));
+            return (
+              <div key={g}>
+                {n > 0 && <div style={{ height: 20 }} />}
+                <RouteGroup
+                  label={g}
+                  items={items.filter((i) => i.route_group === g)}
+                  busyId={busyId}
+                  existingClients={clients}
+                  onSaveField={saveField}
+                  onSavePrice={savePrice}
+                  onSaveHeight={saveHeight}
+                  onSavePayment={savePayment}
+                  onTakeOff={takeOffRoute}
+                  onAdd={(fields) => add(g, fields)}
+                  onAddExisting={(clientId) => add(g, { client_id: clientId, mowing_height: 3 })}
+                  onCopy={(item) => (otherClientIds.has(item.client_id) ? setError(`${item.name} is already on Route ${other}.`) : copyToRoute(item, other))}
+                  copyTitle={`Also put on Route ${other}`}
+                  dragInfo={drag}
+                  onRowDragStart={(index) => setDrag({ group: g, index })}
+                  onRowDrop={(index) => handleRowDrop(g, index)}
+                  onDragEndGlobal={() => setDrag(null)}
+                />
+              </div>
+            );
+          })}
         </>
       )}
     </div>

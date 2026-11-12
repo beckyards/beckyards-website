@@ -36,7 +36,7 @@ export default function JobsQuickAdd({ clients, clientsError, ready, loadFailed,
     const t = clientText.trim();
     if (!t) return null;
     const hit = clients.find((c) => (c.name || '').trim().toLowerCase() === t.toLowerCase());
-    if (hit) return { clientId: hit.id, name: hit.name, address: hit.address || null, group: hit.route_group || null };
+    if (hit) return { clientId: hit.id, name: hit.name, address: hit.address || null, group: null };
     return { clientId: null, name: t, address: null, group: null };
   }
 
