@@ -8,6 +8,14 @@ export const DASHBOARD_LINK = { href: '/admin', label: 'Dashboard', icon: 'dashb
 
 export const SECTIONS = [
   {
+    key: 'calendar',
+    icon: 'calendar',
+    title: 'Calendar',
+    items: [
+      { href: '/admin/calendar', label: 'Calendar', icon: 'calendar', desc: 'Your whole business on one calendar: jobs, appointments, deadlines, reminders, ad dates and mowing routes.' },
+    ],
+  },
+  {
     key: 'inbox',
     icon: 'messages',
     title: 'Inbox',
@@ -32,6 +40,16 @@ export const SECTIONS = [
       { href: '/admin/clients', label: 'Clients', icon: 'clients', desc: 'Everyone you work for in one list: mowing, landscaping, one-time and yearly jobs.' },
       { href: '/admin/jobs', label: 'Jobs', icon: 'jobs', desc: 'Client work to do: jobs with a time estimate, priority and expected income, with Scheduled and Earned totals.' },
       { href: '/admin/todos', label: 'To-Do', icon: 'todo', desc: 'A running list of things to remember. Add one, tick it off when it is done.' },
+    ],
+  },
+  {
+    key: 'advertising',
+    icon: 'megaphone',
+    title: 'Advertising',
+    items: [
+      { href: '/admin/ad-campaigns', label: 'Ad Campaigns', icon: 'megaphone', desc: 'Every ad you run (door hangers, yard signs, Facebook, Google, referrals) with its cost, dates and offer.' },
+      { href: '/admin/ad-leads', label: 'Ad Leads', icon: 'target', desc: 'Log each person your advertising brings in, which ad did it, and what the job is worth.' },
+      { href: '/admin/ad-results', label: 'Ad Results', icon: 'analytics', desc: "What each ad cost and earned, which channels work, and how this year compares with last." },
     ],
   },
   {
