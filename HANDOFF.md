@@ -77,6 +77,13 @@ This was a deliberate, explicit decision by the user after the very first versio
 
 Newest first.
 
+### 2026-11-13 (late) — Dashboard shows today and the week ahead
+
+- **Asked:** connect the calendar to the dashboard so today's things and the week ahead are visible there.
+- **What:** a **Today & the week ahead** panel at the very top of `/admin` (above the traffic stats). Today first ("Nothing planned today." when empty), then each coming day through today + 7 (Tomorrow, then weekday names). Items are everything on the calendar: your events, dated jobs, ad campaign start/end dates, finished mowing runs, each colored by type with time / client / place, and clicking one goes to where it lives (Jobs, Ad Campaigns, Calendar). A red **Past due** box appears only when there are dated jobs or **Reminder**-type events that are in the past (up to 60 days back) and not ticked off; ordinary past events never show there. "Open calendar" button in the panel header. Loads on its own, so if it ever fails the rest of the dashboard is unaffected.
+- **Code:** `GET /api/admin/calendar/upcoming?from=YYYY-MM-DD&days=7` (the browser sends its own "today" so the right day shows regardless of the server's clock; validates `from` and `days` 1-31; returns merged plain items plus `overdue`); `DashboardWeek.js`; wired into `Dashboard.js`; `dash-*` styles in `admin.css`. Reuses `buildItems` / `itemsByDay` from `lib/calendar.js` and the `cal-*` colors.
+- **Verified:** with temporary `ZZ TEST` data in the browser (desktop + 375px): included today, tomorrow, a multi-day event spanning today, an ad start in 3 days, a past-due job and reminder; correctly left out a far-future event, a reminder older than 60 days, a finished past job and an ordinary past event; bad `from` / `days` return 400. Test rows deleted; the owner's real calendar entries (a "Mower Repaired" event and 4 dated jobs, added after the Calendar launch) were left untouched. **Not launched yet** (local only).
+
 ### 2026-11-13 (night) — Jobs and Calendar can be connected (optional)
 
 - **Asked:** make the Jobs page and the Calendar connectable, but not required.

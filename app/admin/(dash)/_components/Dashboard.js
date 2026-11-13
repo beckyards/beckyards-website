@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { StatTile, Panel, BarList, Skeleton, fmt } from './ui';
 import TrafficChart from './TrafficChart';
+import DashboardWeek from './DashboardWeek';
+import { todayISO } from '../../../../lib/advertising';
 import { SECTIONS } from '../adminSections';
 
 const KEY_LABEL = { work: 'Work galleries', services: 'Services', offers: 'Offers' };
@@ -20,6 +22,8 @@ export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [messages, setMessages] = useState(null);
   const [error, setError] = useState('');
+  const [week, setWeek] = useState(null); // today + the week ahead, from the calendar
+  const [weekFailed, setWeekFailed] = useState(false);
 
   useEffect(() => {
     const tz = new Date().getTimezoneOffset();
@@ -33,6 +37,14 @@ export default function Dashboard() {
         if (!m.error) setMessages(m);
       })
       .catch(() => setError('Could not load the dashboard.'));
+  }, []);
+
+  // Loaded on its own, so a hiccup here can never stop the rest of the dashboard from showing.
+  useEffect(() => {
+    fetch(`/api/admin/calendar/upcoming?from=${todayISO()}&days=7`)
+      .then((r) => r.json())
+      .then((d) => { if (d.error) setWeekFailed(true); else setWeek(d); })
+      .catch(() => setWeekFailed(true));
   }, []);
 
   const t = stats?.traffic;
@@ -52,6 +64,8 @@ export default function Dashboard() {
       </div>
 
       {error && <p className="admin-error">{error}</p>}
+
+      {!weekFailed && (week ? <DashboardWeek data={week} /> : <Skeleton h={150} style={{ marginBottom: 24 }} />)}
 
       <div className="stat-row">
         {!stats ? (
