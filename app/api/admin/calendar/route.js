@@ -89,18 +89,21 @@ function dbFail(error) {
   return error.code === '23503' ? fail(NO_LINK, 400) : fail(error.message, 500);
 }
 
-// Your events, plus the mowing runs you've finished (shown read-only on the calendar).
+// Your events, the jobs that have a date (plus every open job, so one can be scheduled from the calendar),
+// and the mowing runs you've finished.
 export async function GET() {
   const { client: supabase, error: authError } = await requireAdminClient();
   if (authError) return authError;
 
-  const [events, runs] = await Promise.all([
+  const [events, runs, jobs] = await Promise.all([
     supabase.from('calendar_events').select(COLUMNS).order('start_date', { ascending: true }).order('start_time', { ascending: true, nullsFirst: true }).limit(5000),
     supabase.from('route_runs').select('id, route_group, run_date, helper').not('completed_at', 'is', null).order('run_date', { ascending: false }).limit(2000),
+    supabase.from('jobs').select('id, title, client_name, address, scheduled_date, done').or('scheduled_date.not.is.null,done.eq.false').limit(2000),
   ]);
   if (events.error) return fail(events.error.message, 500);
   if (runs.error) return fail(runs.error.message, 500);
-  return NextResponse.json({ items: (events.data || []).map(shape), runs: runs.data || [] });
+  if (jobs.error) return fail(jobs.error.message, 500);
+  return NextResponse.json({ items: (events.data || []).map(shape), runs: runs.data || [], jobs: jobs.data || [] });
 }
 
 export async function POST(request) {

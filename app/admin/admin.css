@@ -1433,3 +1433,34 @@
   .cal-row .ad-check { width: 26px; height: 26px; }
   .cal-row-edit { margin-left: 0; padding: 14px 12px; }
 }
+
+/* ---------- Jobs: optional calendar date ---------- */
+.jobs-chip-date { min-width: 78px; justify-content: center; }
+.jobs-chip-date:not(.jobs-chip-ghost) { background: #e9f0d8; border-color: #cbd9a8; color: var(--a-accent-d); }
+.jobs-chip-date:not(.jobs-chip-ghost) svg { color: var(--a-accent-d); }
+.jobs-pop-date { width: min(320px, 86vw); }
+/* The Date button is the first chip, so its popup opens rightward from it (the others open leftward). */
+.jobs-chips .jobs-pop-date { left: 0; right: auto; }
+.jobs-date.is-pop { display: flex; flex-direction: column; gap: 12px; }
+.jobs-date.is-pop .jobs-time-chips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.jobs-date.is-pop .jobs-time-chip { min-width: 0; padding-left: 6px; padding-right: 6px; }
+.jobs-date-field { display: flex; flex-direction: column; gap: 6px; }
+.jobs-date-input { min-height: 40px; padding: 6px 10px; border: 1px solid var(--a-line); border-radius: 8px; font: inherit; background: var(--a-panel-2); color: var(--a-text); }
+.jobs-date-input:focus { outline: 2px solid var(--a-accent); outline-offset: 1px; border-color: transparent; }
+.jobs-date-hint { margin: 0; font-size: 12px; color: var(--a-dim); }
+@media (max-width: 700px) {
+  .jobs-chip-date { min-width: 0; }
+  .jobs-chips .jobs-pop-date { position: absolute; top: 100%; left: 0; right: 0; width: auto; margin-top: 4px; }
+  .jobs-date-input { min-height: 44px; font-size: 16px; }
+}
+
+/* ---------- Calendar: jobs ---------- */
+.cal-day-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.cal-job-select { min-height: 34px; max-width: 280px; font-size: 12.5px; }
+.cal-row-btns { display: flex; gap: 6px; flex: none; }
+@media (max-width: 700px) {
+  .cal-day-actions { width: 100%; }
+  .cal-job-select { flex: 1 1 100%; max-width: none; min-height: 44px; font-size: 16px; }
+  .cal-day-actions .admin-mini { min-height: 44px; flex: 1 1 100%; }
+  .cal-row-btns { flex-direction: column; }
+}

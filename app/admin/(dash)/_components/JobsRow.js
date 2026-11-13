@@ -5,6 +5,8 @@ import { PRIORITIES, PRIORITY_LABELS, formatMinutes, formatMinutesShort, formatM
 import JobsClientPicker from './JobsClientPicker';
 import JobsTimePicker from './JobsTimePicker';
 import JobsIncomePicker from './JobsIncomePicker';
+import JobsDatePicker from './JobsDatePicker';
+import { formatDay } from '../../../../lib/advertising';
 import { Icon } from './JobsIcons';
 
 // Click straight on text to edit it in place. Enter / blur saves, Escape cancels.
@@ -110,12 +112,13 @@ function usePopover() {
 
 export default function JobsRow({
   job, clients, clientsError, isNew,
-  onToggle, onTitle, onNotes, onMinutes, onIncome, onPriority, onClient, onDuplicate, onDelete,
+  onToggle, onTitle, onNotes, onMinutes, onIncome, onSchedule, onPriority, onClient, onDuplicate, onDelete,
 }) {
   const locked = Boolean(job._pending);
   const clientPop = usePopover();
   const timePop = usePopover();
   const incomePop = usePopover();
+  const datePop = usePopover();
   const prioPop = usePopover();
   const [clientText, setClientText] = useState('');
   const [noteOpen, setNoteOpen] = useState(false);
@@ -127,12 +130,13 @@ export default function JobsRow({
   const hasClient = Boolean(job.client_name);
   const hasTime = job.estimated_minutes > 0;
   const hasIncome = job.estimated_income !== null && job.estimated_income !== undefined;
+  const hasDate = Boolean(job.scheduled_date);
   const cls = [
     'jobs-row',
     job.done && 'is-done',
     locked && 'is-pending',
     isNew && 'is-new',
-    (clientPop.open || timePop.open || incomePop.open || prioPop.open) && 'has-pop',
+    (clientPop.open || timePop.open || incomePop.open || prioPop.open || datePop.open) && 'has-pop',
   ].filter(Boolean).join(' ');
 
   return (
@@ -230,6 +234,32 @@ export default function JobsRow({
       </div>
 
       <div className="jobs-chips">
+        <span className="jobs-pop-anchor" {...datePop.wrapProps}>
+          <button
+            ref={datePop.triggerRef}
+            type="button"
+            className={`jobs-chip jobs-chip-date ${hasDate ? '' : 'jobs-chip-ghost'}`}
+            aria-haspopup="dialog"
+            aria-expanded={datePop.open}
+            aria-label={hasDate ? `On the calendar ${formatDay(job.scheduled_date, true)}. Change.` : 'Put on the calendar'}
+            title={hasDate ? 'On the calendar. Click to change or remove.' : 'Put on the calendar (optional)'}
+            disabled={locked}
+            onClick={datePop.toggle}
+          >
+            {Icon.calendar}
+            <span>{hasDate ? formatDay(job.scheduled_date) : 'Date'}</span>
+          </button>
+          {datePop.open && (
+            <div className="jobs-pop jobs-pop-date" role="dialog" aria-label="Calendar date">
+              <JobsDatePicker
+                date={job.scheduled_date || null}
+                onChange={(d) => onSchedule(job, d)}
+                onDone={() => datePop.close(true)}
+              />
+            </div>
+          )}
+        </span>
+
         <span className="jobs-pop-anchor" {...incomePop.wrapProps}>
           <button
             ref={incomePop.triggerRef}

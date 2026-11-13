@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 import { requireAdminClient } from '../../../../lib/adminAuth';
 import { PRIORITIES, MAX_MINUTES, MAX_INCOME, compareJobs, parseMoney } from '../../../../lib/jobs';
+import { isValidDate } from '../../../../lib/calendar';
 
 export const dynamic = 'force-dynamic';
 
 const JOB_COLUMNS =
-  'id, title, client_id, client_name, address, estimated_minutes, estimated_income, priority, notes, done, completed_at, sort_order, created_at';
+  'id, title, client_id, client_name, address, estimated_minutes, estimated_income, priority, notes, done, completed_at, sort_order, created_at, scheduled_date';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_TITLE = 200;
@@ -18,6 +19,7 @@ const INCOME_MESSAGE = `Estimated income must be a dollar amount between $0 and 
 const PRIORITY_MESSAGE = 'Priority must be High, Medium, or Low.';
 const NO_CLIENT_MESSAGE = 'That client no longer exists.';
 const NO_JOB_MESSAGE = 'That job no longer exists.';
+const DATE_MESSAGE = "That isn't a valid date.";
 
 function fail(message, status = 400) {
   return NextResponse.json({ error: message }, { status });
@@ -74,6 +76,12 @@ function cleanIncome(raw) {
   // More than two decimal places (e.g. 1.234) is rejected rather than silently rounded.
   if (Math.abs(cents - raw * 100) > 1e-6) return { error: INCOME_MESSAGE };
   return { value: cents / 100 };
+}
+
+// null / '' / undefined -> null (not on the calendar). Otherwise a real "YYYY-MM-DD" date.
+function cleanScheduledDate(raw) {
+  if (raw === null || raw === undefined || raw === '') return { value: null };
+  return isValidDate(raw) ? { value: raw } : { error: DATE_MESSAGE };
 }
 
 function cleanPriority(raw) {
@@ -169,6 +177,9 @@ export async function POST(request) {
   const income = cleanIncome(body.estimated_income);
   if (income.error) return fail(income.error);
 
+  const scheduled = cleanScheduledDate(body.scheduled_date);
+  if (scheduled.error) return fail(scheduled.error);
+
   let priority = 'medium';
   if (body.priority !== null && body.priority !== undefined && body.priority !== '') {
     priority = cleanPriority(body.priority);
@@ -196,6 +207,7 @@ export async function POST(request) {
       estimated_income: income.value,
       priority,
       notes: notes.value,
+      scheduled_date: scheduled.value,
     }])
     .select(JOB_COLUMNS)
     .single();
@@ -205,7 +217,8 @@ export async function POST(request) {
   return NextResponse.json({ item: data });
 }
 
-// { id, ...any of: title | client_id | client_name | address | estimated_minutes | estimated_income | priority | notes | done }
+// { id, ...any of: title | client_id | client_name | address | estimated_minutes | estimated_income | priority | notes | scheduled_date | done }
+//   scheduled_date  -- "YYYY-MM-DD" puts the job on the Calendar; null takes it off (jobs without a date are simply not on it)
 //   client_id null  -- unlinks the client; client_name / address stay unless sent too
 //   client_id <id>  -- links the client and re-copies name + address unless sent in the same request
 //   done            -- true stamps completed_at, false clears it
@@ -252,6 +265,12 @@ export async function PATCH(request) {
     const notes = cleanText(body.notes, 'Notes', MAX_NOTES);
     if (notes.error) return fail(notes.error);
     patch.notes = notes.value;
+  }
+
+  if ('scheduled_date' in body) {
+    const scheduled = cleanScheduledDate(body.scheduled_date);
+    if (scheduled.error) return fail(scheduled.error);
+    patch.scheduled_date = scheduled.value;
   }
 
   if ('done' in body) {

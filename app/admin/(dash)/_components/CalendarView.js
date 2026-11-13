@@ -148,6 +148,7 @@ function eventToForm(e) {
 export default function CalendarView() {
   const [events, setEvents] = useState(null);
   const [runs, setRuns] = useState([]);
+  const [jobs, setJobs] = useState([]);
   const [campaigns, setCampaigns] = useState(null);
   const [clients, setClients] = useState([]);
   const [error, setError] = useState('');
@@ -175,6 +176,7 @@ export default function CalendarView() {
       .then(([cal, ads, cl]) => {
         setEvents(cal.items || []);
         setRuns(cal.runs || []);
+        setJobs(cal.jobs || []);
         setCampaigns(ads.items || []);
         setClients([...(cl.items || [])].sort((a, b) => (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' })));
       })
@@ -193,8 +195,8 @@ export default function CalendarView() {
   const clientsById = useMemo(() => new Map(clients.map((c) => [c.id, c])), [clients]);
 
   const allItems = useMemo(
-    () => (ready ? buildItems({ events, campaigns, runs, clientsById }) : []),
-    [ready, events, campaigns, runs, clientsById],
+    () => (ready ? buildItems({ events, campaigns, runs, jobs, clientsById }) : []),
+    [ready, events, campaigns, runs, jobs, clientsById],
   );
   const items = useMemo(() => allItems.filter((i) => !hidden.has(i.category)), [allItems, hidden]);
 
@@ -277,11 +279,34 @@ export default function CalendarView() {
     }
   }
 
+  // Jobs live on the Jobs page; from here you can tick one off, take it off the calendar, or give an undated job a day.
+  async function patchJob(id, fields) {
+    setBusyId(id);
+    setError('');
+    try {
+      const d = await adRequest('/api/admin/jobs', 'PATCH', { id, ...fields });
+      setJobs((prev) => prev.map((j) => (j.id === id ? { ...j, ...d.item } : j)));
+      return true;
+    } catch (e) {
+      setError(e.message);
+      return false;
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  // Open jobs with no date: the ones that can be put on the calendar.
+  const unscheduledJobs = useMemo(
+    () => jobs.filter((j) => !j.done && !j.scheduled_date).sort((a, b) => (a.title || '').localeCompare(b.title || '', undefined, { sensitivity: 'base' })),
+    [jobs],
+  );
+
   // One row in the day panel or the list view. A plain function (not a component) so a row keeps
   // any half-typed edit across re-renders.
   function renderRow(item, showDate) {
     const ev = item.event;
-    const busy = ev && busyId === ev.id;
+    const job = item.job;
+    const busy = (ev && busyId === ev.id) || (job && busyId === job.id);
     const open = ev && editingId === ev.id;
     const when = item.end > item.start
       ? `${formatDay(item.start)} – ${formatDay(item.end)}`
@@ -298,6 +323,15 @@ export default function CalendarView() {
               aria-label={`Done: ${item.title}`}
               onChange={() => save(ev, { done: !ev.done })}
             />
+          ) : job ? (
+            <input
+              type="checkbox"
+              className="ad-check"
+              checked={item.done}
+              disabled={busy}
+              aria-label={`Done: ${item.title}`}
+              onChange={() => patchJob(job.id, { done: !job.done })}
+            />
           ) : (
             <span className="cal-auto-dot" aria-hidden="true" />
           )}
@@ -305,12 +339,17 @@ export default function CalendarView() {
             <span className="cal-when">{when}</span>
             <strong>{item.title}</strong>
             {item.sub && <span className="ad-c-sub">{item.sub}</span>}
-            <span className="cal-tag">{CATEGORY_LABELS[item.category]}{ev ? '' : ' · from your other pages'}</span>
+            <span className="cal-tag">{CATEGORY_LABELS[item.category]}{ev ? '' : job ? ' · from Jobs' : ' · from your other pages'}</span>
           </div>
           {ev ? (
             <button type="button" className="admin-mini" aria-expanded={open} disabled={busy} onClick={() => setEditingId(open ? null : ev.id)}>
               {open ? 'Close' : 'Edit'}
             </button>
+          ) : job ? (
+            <div className="cal-row-btns">
+              <a className="admin-mini" href={item.href}>Open</a>
+              <button type="button" className="admin-mini" disabled={busy} title="Keeps the job, just removes its date" onClick={() => patchJob(job.id, { scheduled_date: null })}>Take off</button>
+            </div>
           ) : (
             <a className="admin-mini" href={item.href}>View</a>
           )}
@@ -337,8 +376,8 @@ export default function CalendarView() {
     <div className="admin-page ad-page cal-page">
       <h1>Calendar</h1>
       <p className="admin-lead">
-        Your whole business on one calendar: jobs, appointments, deadlines and reminders. Your ad
-        campaign dates and finished mowing routes show up here on their own.
+        Your whole business on one calendar. Give a job a date and it shows up here, or add
+        appointments, deadlines and reminders. Ad campaign dates and finished mowing routes appear on their own.
       </p>
 
       {error && <p className="admin-error" role="alert">{error}</p>}
@@ -427,7 +466,20 @@ export default function CalendarView() {
               <section className="cal-day" aria-label={longDay(selected)}>
                 <header className="cal-day-head">
                   <h2>{longDay(selected)}{selected === today && <span className="ad-chip is-ok">Today</span>}</h2>
-                  <button type="button" className="admin-mini" onClick={() => openAdd(selected)}>+ Add on this day</button>
+                  <div className="cal-day-actions">
+                    {unscheduledJobs.length > 0 && (
+                      <select
+                        className="admin-height-select cal-job-select"
+                        aria-label="Schedule a job on this day"
+                        value=""
+                        onChange={(e) => { if (e.target.value) patchJob(e.target.value, { scheduled_date: selected }); }}
+                      >
+                        <option value="">Schedule a job on this day…</option>
+                        {unscheduledJobs.map((j) => <option key={j.id} value={j.id}>{j.title}{j.client_name ? ` (${j.client_name})` : ''}</option>)}
+                      </select>
+                    )}
+                    <button type="button" className="admin-mini" onClick={() => openAdd(selected)}>+ Add on this day</button>
+                  </div>
                 </header>
                 {selectedItems.length === 0 ? (
                   <p className="ad-empty-line">Nothing planned for this day.</p>

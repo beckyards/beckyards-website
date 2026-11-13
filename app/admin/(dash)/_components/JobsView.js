@@ -551,6 +551,7 @@ export default function JobsView() {
                       onNotes={(j, notes) => updateJob(j.id, { notes: notes || null })}
                       onMinutes={(j, minutes) => updateJob(j.id, { estimated_minutes: minutes })}
                       onIncome={(j, amount) => updateJob(j.id, { estimated_income: amount })}
+                      onSchedule={(j, date) => updateJob(j.id, { scheduled_date: date })}
                       onPriority={changePriority}
                       onClient={changeClient}
                       onDuplicate={duplicateJob}
