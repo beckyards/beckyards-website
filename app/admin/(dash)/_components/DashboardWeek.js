@@ -2,31 +2,40 @@
 
 import { Panel } from './ui';
 import { formatDay } from '../../../../lib/advertising';
-import { CATEGORY_LABELS, addDays, formatTimeRange, itemsByDay, longDay } from '../../../../lib/calendar';
+import { CATEGORIES, CATEGORY_LABELS, addDays, dayOfMonth, formatTime, formatTimeRange, itemsByDay, longDay } from '../../../../lib/calendar';
 
-// One line on the dashboard: a colored bar for the type, when, what, and who/where. Click goes to where it lives.
-function Row({ item }) {
+const MAX_PER_DAY = 4;
+const MAX_LATE = 4;
+
+// "9:00 AM" -> "9a", "2:30 PM" -> "2:30p"
+function shortTime(time) {
+  return formatTime(time).replace(':00', '').replace(' AM', 'a').replace(' PM', 'p');
+}
+
+function tip(item) {
   const when = item.end > item.start ? `${formatDay(item.start)} – ${formatDay(item.end)}` : formatTimeRange(item.time, item.endTime) || 'All day';
+  return [item.title, item.sub, when, CATEGORY_LABELS[item.category]].filter(Boolean).join(' · ');
+}
+
+// One small colored tag: what it is, with the time first when it has one. Click goes to where it lives.
+function Chip({ item }) {
   return (
-    <li className={`cal-row dash-row${item.done ? ' is-done' : ''}`} data-cat={item.category}>
-      <a className="cal-row-line dash-link" href={item.href}>
-        <div className="cal-row-main">
-          <span className="cal-when">{when}</span>
-          <strong>{item.title}</strong>
-          {item.sub && <span className="ad-c-sub">{item.sub}</span>}
-        </div>
-        <span className="cal-tag dash-tag">{CATEGORY_LABELS[item.category]}</span>
-      </a>
-    </li>
+    <a className={`dash-chip${item.done ? ' is-done' : ''}`} data-cat={item.category} href={item.href} title={tip(item)}>
+      {item.time && <i>{shortTime(item.time)}</i>}
+      {item.title}
+    </a>
   );
 }
 
-// "Today and the week ahead", built from the Calendar (your events, dated jobs, ad dates, mowing runs).
+// A compact week at a glance: seven day columns (today first), built from the Calendar
+// (your events, dated jobs, ad campaign dates, mowing runs). Anything past due gets one slim line above.
 export default function DashboardWeek({ data }) {
   const byDay = itemsByDay(data.items, data.from, data.to);
-  const today = byDay.get(data.from) || [];
-  const laterDays = [...byDay.keys()].filter((d) => d > data.from).sort();
-  const tomorrow = addDays(data.from, 1);
+  const days = [];
+  for (let d = data.from, i = 0; d <= data.to && i < 14; d = addDays(d, 1), i += 1) days.push(d);
+
+  const late = data.overdue.slice(0, MAX_LATE);
+  const lateMore = data.overdue.length - late.length;
 
   return (
     <Panel
@@ -35,53 +44,53 @@ export default function DashboardWeek({ data }) {
       actions={<a className="admin-mini" href="/admin/calendar">Open calendar</a>}
     >
       <div className="cal-page dash-week">
-        {data.overdue.length > 0 && (
-          <section className="dash-late" aria-label="Past due">
-            <h3 className="dash-day">Past due <span>Dated jobs and reminders not ticked off yet</span></h3>
-            <ul className="cal-list">
-              {data.overdue.map((it) => (
-                <li key={it.key} className="cal-row dash-row" data-cat={it.category}>
-                  <a className="cal-row-line dash-link" href={it.href}>
-                    <div className="cal-row-main">
-                      <span className="cal-when">{longDay(it.start)}</span>
-                      <strong>{it.title}</strong>
-                      {it.sub && <span className="ad-c-sub">{it.sub}</span>}
-                    </div>
-                    <span className="cal-tag dash-tag">{CATEGORY_LABELS[it.category]}</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </section>
+        {late.length > 0 && (
+          <div className="dash-late-bar" role="group" aria-label="Past due">
+            <strong>Past due</strong>
+            {late.map((it) => (
+              <a key={it.key} className="dash-late-item" data-cat={it.category} href={it.href} title={tip(it)}>
+                {it.title} <i>{formatDay(it.start)}</i>
+              </a>
+            ))}
+            {lateMore > 0 && <a className="dash-late-more" href="/admin/calendar">+{lateMore} more</a>}
+          </div>
         )}
 
-        <section aria-label="Today">
-          <h3 className="dash-day">Today <span>{longDay(data.from)}</span></h3>
-          {today.length === 0 ? (
-            <p className="ad-empty-line">Nothing planned today.</p>
-          ) : (
-            <ul className="cal-list">{today.map((it) => <Row key={it.key} item={it} />)}</ul>
-          )}
-        </section>
+        <div className="dash-strip" role="list" aria-label="The next seven days">
+          {days.map((day, idx) => {
+            const list = byDay.get(day) || [];
+            const isToday = idx === 0;
+            const long = longDay(day).split(', ');
+            const shown = list.slice(0, MAX_PER_DAY);
+            return (
+              <section
+                key={day}
+                role="listitem"
+                className={`dash-col${isToday ? ' is-today' : ''}${list.length === 0 ? ' is-empty' : ''}`}
+                aria-label={`${longDay(day)}${list.length ? `, ${list.length} ${list.length === 1 ? 'item' : 'items'}` : ', nothing planned'}`}
+              >
+                <header className="dash-col-head">
+                  <span className="dash-wd">{isToday ? 'Today' : long[0].slice(0, 3)}</span>
+                  <span className="dash-dn">{dayOfMonth(day)}</span>
+                </header>
+                <div className="dash-col-items">
+                  {list.length === 0 ? (
+                    <span className="dash-none"><b aria-hidden="true">—</b><em>Nothing planned</em></span>
+                  ) : (
+                    <>
+                      {shown.map((it) => <Chip key={`${it.key}@${day}`} item={it} />)}
+                      {list.length > shown.length && <a className="dash-more" href="/admin/calendar">+{list.length - shown.length} more</a>}
+                    </>
+                  )}
+                </div>
+              </section>
+            );
+          })}
+        </div>
 
-        <section aria-label="The week ahead">
-          {laterDays.length === 0 ? (
-            <>
-              <h3 className="dash-day">Coming up <span>Next 7 days</span></h3>
-              <p className="ad-empty-line">Nothing else on the calendar this week.</p>
-            </>
-          ) : (
-            laterDays.map((day) => (
-              <div key={day} className="dash-daygroup">
-                <h3 className="dash-day">
-                  {day === tomorrow ? 'Tomorrow' : longDay(day).split(', ')[0]}
-                  <span>{day === tomorrow ? longDay(day) : longDay(day).split(', ').slice(1).join(', ')}</span>
-                </h3>
-                <ul className="cal-list">{(byDay.get(day) || []).map((it) => <Row key={`${it.key}@${day}`} item={it} />)}</ul>
-              </div>
-            ))
-          )}
-        </section>
+        <ul className="dash-legend" aria-label="Colors">
+          {CATEGORIES.map((c) => <li key={c.key} data-cat={c.key}><i aria-hidden="true" />{c.label}</li>)}
+        </ul>
       </div>
     </Panel>
   );

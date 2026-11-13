@@ -41,7 +41,7 @@ export default function Dashboard() {
 
   // Loaded on its own, so a hiccup here can never stop the rest of the dashboard from showing.
   useEffect(() => {
-    fetch(`/api/admin/calendar/upcoming?from=${todayISO()}&days=7`)
+    fetch(`/api/admin/calendar/upcoming?from=${todayISO()}&days=6`)
       .then((r) => r.json())
       .then((d) => { if (d.error) setWeekFailed(true); else setWeek(d); })
       .catch(() => setWeekFailed(true));
